@@ -17,6 +17,12 @@ import org.springframework.security.web.SecurityFilterChain;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
+    private static final String AUTH_ENDPOINT = "/api/auth/**";
+    private static final String ADMIN_ENDPOINT = "/api/admin/**";
+    private static final String PREMIUM_ENDPOINT = "/api/premium/**";
+    private static final String ROLE_ADMIN = "ADMIN";
+    private static final String ROLE_PREMIUM = "PREMIUM";
+
     private final AuthenticationProvider authenticationProvider;
 
     @Bean
@@ -26,9 +32,9 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(authenticationProvider)
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**").permitAll()
-                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
-                        .requestMatchers("/api/premium/**").hasAnyRole("PREMIUM", "ADMIN")
+                        .requestMatchers(AUTH_ENDPOINT).permitAll()
+                        .requestMatchers(ADMIN_ENDPOINT).hasRole(ROLE_ADMIN)
+                        .requestMatchers(PREMIUM_ENDPOINT).hasAnyRole(ROLE_PREMIUM, ROLE_ADMIN)
                         .anyRequest().authenticated()
                 );
 

@@ -19,26 +19,32 @@ public class UserService implements UserDetailsService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
+    private static final String USER_NOT_FOUND = "User not found: %s";
+    private static final String EMAIL_ALREADY_IN_USE = "Email already in use: %s";
+    private static final String USERNAME_ALREADY_TAKEN = "Username already taken: %s";
+    private static final String PASSWORD_INCORRECT = "Current password is incorrect";
+    private static final String ROLE_PREFIX = "ROLE_";
+
     // Used by Spring Security to load user by email during authentication
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + email));
+                .orElseThrow(() -> new UsernameNotFoundException(String.format(USER_NOT_FOUND, email)));
 
         return new org.springframework.security.core.userdetails.User(
                 user.getEmail(),
                 user.getPassword(),
-                List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole().name()))
+                List.of(new SimpleGrantedAuthority(ROLE_PREFIX + user.getRole().name()))
         );
     }
 
     // ФИ2 – Registration
     public User register(String email, String username, String password) {
         if (userRepository.existsByEmail(email)) {
-            throw new IllegalArgumentException("Email already in use: " + email);
+            throw new IllegalArgumentException(String.format(EMAIL_ALREADY_IN_USE, email));
         }
         if (userRepository.existsByUsername(username)) {
-            throw new IllegalArgumentException("Username already taken: " + username);
+            throw new IllegalArgumentException(String.format(USERNAME_ALREADY_TAKEN, username));
         }
 
         User user = new User();
@@ -53,18 +59,18 @@ public class UserService implements UserDetailsService {
     // ФИ3 – Find by email (used after authentication)
     public User findByEmail(String email) {
         return userRepository.findByEmail(email)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + email));
+                .orElseThrow(() -> new UsernameNotFoundException(String.format(USER_NOT_FOUND, email)));
     }
 
     public User findById(Long id) {
         return userRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("User not found: " + id));
+                .orElseThrow(() -> new IllegalArgumentException(String.format(USER_NOT_FOUND, id)));
     }
 
     // Profile management
     public User updateUsername(Long id, String newUsername) {
         if (userRepository.existsByUsername(newUsername)) {
-            throw new IllegalArgumentException("Username already taken: " + newUsername);
+            throw new IllegalArgumentException(String.format(USERNAME_ALREADY_TAKEN, newUsername));
         }
         User user = findById(id);
         user.setUsername(newUsername);
@@ -74,7 +80,7 @@ public class UserService implements UserDetailsService {
     public User updatePassword(Long id, String currentPassword, String newPassword) {
         User user = findById(id);
         if (!passwordEncoder.matches(currentPassword, user.getPassword())) {
-            throw new IllegalArgumentException("Current password is incorrect");
+            throw new IllegalArgumentException(PASSWORD_INCORRECT);
         }
         user.setPassword(passwordEncoder.encode(newPassword));
         return userRepository.save(user);
@@ -83,7 +89,7 @@ public class UserService implements UserDetailsService {
     // ФИ15 – Admin: delete user
     public void deleteUser(Long id) {
         if (!userRepository.existsById(id)) {
-            throw new IllegalArgumentException("User not found: " + id);
+            throw new IllegalArgumentException(String.format(USER_NOT_FOUND, id));
         }
         userRepository.deleteById(id);
     }
