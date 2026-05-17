@@ -10,6 +10,8 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import org.springframework.security.core.context.SecurityContextHolder;
+
 import java.util.List;
 
 @Service
@@ -99,6 +101,11 @@ public class UserService implements UserDetailsService {
         User user = findById(id);
         user.setRole(role);
         return userRepository.save(user);
+    }
+
+    public User getCurrentUser() {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        return findByEmail(email);
     }
 
     // Admin: list all users
