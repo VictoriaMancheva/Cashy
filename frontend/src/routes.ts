@@ -1,0 +1,14 @@
+export const ROUTES = {
+  login: '/login',
+  register: '/register',
+  dashboard: '/dashboard',
+  transactions: '/transactions',
+  categories: '/categories',
+  paymentMethods: '/payment-methods',
+  budgets: '/budgets',
+  goals: '/goals',
+  dailyBudget: '/daily-budget',
+  recurringTransactions: '/recurring-transactions',
+  notifications: '/notifications',
+  profile: '/profile',
+} as const
