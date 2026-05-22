@@ -5,6 +5,7 @@ export const BudgetCategorySchema = z.object({
   categoryId: z.number(),
   categoryName: z.string(),
   limitAmount: z.number(),
+  spentAmount: z.number(),
 })
 
 export const BudgetSchema = z.object({

@@ -6,7 +6,10 @@ import com.cashy.entity.Category;
 import com.cashy.entity.PaymentMethod;
 import com.cashy.entity.Transaction;
 import com.cashy.entity.User;
+import com.cashy.repository.BudgetCategoryRepository;
+import com.cashy.repository.BudgetRepository;
 import com.cashy.repository.CategoryRepository;
+import com.cashy.repository.DailyBudgetRepository;
 import com.cashy.repository.PaymentMethodRepository;
 import com.cashy.repository.TransactionRepository;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +25,10 @@ public class TransactionService {
     private final TransactionRepository transactionRepository;
     private final CategoryRepository categoryRepository;
     private final PaymentMethodRepository paymentMethodRepository;
+    private final BudgetRepository budgetRepository;
+    private final BudgetCategoryRepository budgetCategoryRepository;
+    private final DailyBudgetRepository dailyBudgetRepository;
+    private final NotificationService notificationService;
     private final UserService userService;
 
     private static final String TRANSACTION_NOT_FOUND = "Transaction not found: %d";
@@ -61,7 +68,12 @@ public class TransactionService {
         transaction.setUser(user);
         transaction.setCategory(resolveCategory(request.getCategoryId()));
         transaction.setPaymentMethod(resolvePaymentMethod(request.getPaymentMethodId()));
-        return toResponse(transactionRepository.save(transaction));
+        Transaction saved = transactionRepository.save(transaction);
+        if (saved.getType() == Transaction.TransactionType.EXPENSE) {
+            checkDailyBudgetExceeded(user, saved.getDate());
+            checkBudgetCategoryExceeded(user, saved);
+        }
+        return toResponse(saved);
     }
 
     public TransactionResponse updateTransaction(Long id, TransactionRequest request) {
@@ -89,6 +101,38 @@ public class TransactionService {
             throw new IllegalArgumentException(ACCESS_DENIED);
         }
         transactionRepository.delete(transaction);
+    }
+
+    private void checkDailyBudgetExceeded(User user, LocalDate date) {
+        dailyBudgetRepository.findByUserAndDate(user, date).ifPresent(db -> {
+            Double totalSpent = transactionRepository.sumExpenseByUserAndDate(user, date);
+            if (totalSpent > db.getDailyLimit()) {
+                notificationService.createNotification(user,
+                        String.format("Daily budget exceeded on %s. Spent: %.2f / Limit: %.2f", date, totalSpent, db.getDailyLimit()));
+            }
+        });
+    }
+
+    private void checkBudgetCategoryExceeded(User user, Transaction transaction) {
+        if (transaction.getCategory() == null) return;
+        LocalDate date = transaction.getDate();
+        budgetRepository.findByUserAndMonthAndYear(user, date.getMonthValue(), date.getYear()).ifPresent(budget -> {
+            LocalDate startDate = LocalDate.of(budget.getYear(), budget.getMonth(), 1);
+            LocalDate endDate = startDate.withDayOfMonth(startDate.lengthOfMonth());
+            budgetCategoryRepository.findByBudget(budget).stream()
+                    .filter(bc -> bc.getCategory().getId().equals(transaction.getCategory().getId()))
+                    .findFirst()
+                    .ifPresent(bc -> {
+                        Double spent = transactionRepository.sumExpenseByUserAndCategoryAndDateRange(
+                                user, bc.getCategory(), startDate, endDate);
+                        Double spentBefore = spent - transaction.getAmount();
+                        if (spentBefore <= bc.getLimitAmount() && spent > bc.getLimitAmount()) {
+                            notificationService.createNotification(user,
+                                    String.format("Budget limit exceeded for category \"%s\". Spent: %.2f / Limit: %.2f",
+                                            bc.getCategory().getName(), spent, bc.getLimitAmount()));
+                        }
+                    });
+        });
     }
 
     private Category resolveCategory(Long categoryId) {

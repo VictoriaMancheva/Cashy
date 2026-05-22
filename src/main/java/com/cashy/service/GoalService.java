@@ -15,6 +15,7 @@ import java.util.List;
 public class GoalService {
 
     private final GoalRepository goalRepository;
+    private final NotificationService notificationService;
     private final UserService userService;
 
     private static final String GOAL_NOT_FOUND = "Goal not found: %d";
@@ -61,8 +62,14 @@ public class GoalService {
         if (!goal.getUser().getId().equals(user.getId())) {
             throw new IllegalArgumentException(ACCESS_DENIED);
         }
-        goal.setCurrentAmount(goal.getCurrentAmount() + amount);
-        return toResponse(goalRepository.save(goal));
+        double previousAmount = goal.getCurrentAmount();
+        goal.setCurrentAmount(previousAmount + amount);
+        Goal saved = goalRepository.save(goal);
+        if (previousAmount < goal.getTargetAmount() && saved.getCurrentAmount() >= goal.getTargetAmount()) {
+            notificationService.createNotification(user,
+                    String.format("Goal \"%s\" completed! You reached your target of %.2f.", goal.getName(), goal.getTargetAmount()));
+        }
+        return toResponse(saved);
     }
 
     public void deleteGoal(Long id) {

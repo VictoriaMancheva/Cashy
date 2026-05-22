@@ -11,10 +11,12 @@ import com.cashy.entity.User;
 import com.cashy.repository.BudgetCategoryRepository;
 import com.cashy.repository.BudgetRepository;
 import com.cashy.repository.CategoryRepository;
+import com.cashy.repository.TransactionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -24,6 +26,7 @@ public class BudgetService {
     private final BudgetRepository budgetRepository;
     private final BudgetCategoryRepository budgetCategoryRepository;
     private final CategoryRepository categoryRepository;
+    private final TransactionRepository transactionRepository;
     private final UserService userService;
 
     private static final String BUDGET_NOT_FOUND = "Budget not found: %d";
@@ -107,12 +110,19 @@ public class BudgetService {
     }
 
     private BudgetResponse toResponse(Budget budget, List<BudgetCategory> categories) {
+        LocalDate startDate = LocalDate.of(budget.getYear(), budget.getMonth(), 1);
+        LocalDate endDate = startDate.withDayOfMonth(startDate.lengthOfMonth());
         List<BudgetCategoryResponse> categoryResponses = categories.stream()
-                .map(bc -> new BudgetCategoryResponse(
-                        bc.getId(),
-                        bc.getCategory().getId(),
-                        bc.getCategory().getName(),
-                        bc.getLimitAmount()))
+                .map(bc -> {
+                    Double spent = transactionRepository.sumExpenseByUserAndCategoryAndDateRange(
+                            budget.getUser(), bc.getCategory(), startDate, endDate);
+                    return new BudgetCategoryResponse(
+                            bc.getId(),
+                            bc.getCategory().getId(),
+                            bc.getCategory().getName(),
+                            bc.getLimitAmount(),
+                            spent);
+                })
                 .toList();
         return new BudgetResponse(
                 budget.getId(),

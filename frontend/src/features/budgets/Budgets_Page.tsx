@@ -93,13 +93,27 @@ export const Budgets_Page = () => {
                     {formatCurrency(budget.totalAmount)}
                   </p>
                   {budget.categories.length > 0 && (
-                    <div className="space-y-1 pt-1 border-t border-border">
-                      {budget.categories.map((cat) => (
-                        <div key={cat.id} className="flex justify-between text-sm">
-                          <span className="text-muted-foreground">{cat.categoryName}</span>
-                          <span>{formatCurrency(cat.limitAmount)}</span>
-                        </div>
-                      ))}
+                    <div className="space-y-3 pt-1 border-t border-border">
+                      {budget.categories.map((cat) => {
+                        const pct = Math.min(100, cat.limitAmount > 0 ? (cat.spentAmount / cat.limitAmount) * 100 : 0)
+                        const overBudget = cat.spentAmount > cat.limitAmount
+                        return (
+                          <div key={cat.id} className="space-y-1">
+                            <div className="flex justify-between text-sm">
+                              <span className="text-muted-foreground">{cat.categoryName}</span>
+                              <span className={overBudget ? 'text-destructive font-medium' : ''}>
+                                {formatCurrency(cat.spentAmount)} / {formatCurrency(cat.limitAmount)}
+                              </span>
+                            </div>
+                            <div className="h-1.5 w-full rounded-full bg-muted overflow-hidden">
+                              <div
+                                className={`h-full rounded-full transition-all ${overBudget ? 'bg-destructive' : 'bg-primary'}`}
+                                style={{ width: `${pct}%` }}
+                              />
+                            </div>
+                          </div>
+                        )
+                      })}
                     </div>
                   )}
                 </CardContent>
