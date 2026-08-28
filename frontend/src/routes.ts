@@ -11,4 +11,5 @@ export const ROUTES = {
   recurringTransactions: '/recurring-transactions',
   notifications: '/notifications',
   profile: '/profile',
+  analytics: '/analytics',
 } as const

@@ -8,8 +8,10 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+import static com.cashy.util.Constant.*;
+
 @RestController
-@RequestMapping("/api/notifications")
+@RequestMapping(NOTIFICATIONS_PATH)
 @RequiredArgsConstructor
 public class NotificationController {
 
@@ -20,23 +22,23 @@ public class NotificationController {
         return ResponseEntity.ok(notificationService.getNotifications());
     }
 
-    @GetMapping("/unread-count")
+    @GetMapping(UNREAD_COUNT)
     public ResponseEntity<Long> getUnreadCount() {
         return ResponseEntity.ok(notificationService.getUnreadCount());
     }
 
-    @PatchMapping("/{id}/read")
+    @PatchMapping(MARK_AS_READ_PATH)
     public ResponseEntity<NotificationResponse> markAsRead(@PathVariable Long id) {
         return ResponseEntity.ok(notificationService.markAsRead(id));
     }
 
-    @PatchMapping("/read-all")
+    @PatchMapping(READ_ALL_PATH)
     public ResponseEntity<Void> markAllAsRead() {
         notificationService.markAllAsRead();
         return ResponseEntity.noContent().build();
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping(ID_PATH)
     public ResponseEntity<Void> deleteNotification(@PathVariable Long id) {
         notificationService.deleteNotification(id);
         return ResponseEntity.noContent().build();

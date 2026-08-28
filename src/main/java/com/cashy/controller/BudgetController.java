@@ -10,8 +10,11 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+import static com.cashy.util.Constant.BUDGETS_PATH;
+import static com.cashy.util.Constant.ID_PATH;
+
 @RestController
-@RequestMapping("/api/budgets")
+@RequestMapping(BUDGETS_PATH)
 @RequiredArgsConstructor
 public class BudgetController {
 
@@ -22,7 +25,7 @@ public class BudgetController {
         return ResponseEntity.ok(budgetService.getBudgets());
     }
 
-    @GetMapping("/{id}")
+    @GetMapping(ID_PATH)
     public ResponseEntity<BudgetResponse> getBudget(@PathVariable Long id) {
         return ResponseEntity.ok(budgetService.getBudget(id));
     }
@@ -32,14 +35,14 @@ public class BudgetController {
         return ResponseEntity.ok(budgetService.createBudget(request));
     }
 
-    @PutMapping("/{id}")
+    @PutMapping(ID_PATH)
     public ResponseEntity<BudgetResponse> updateBudget(
             @PathVariable Long id,
             @Valid @RequestBody BudgetRequest request) {
         return ResponseEntity.ok(budgetService.updateBudget(id, request));
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping(ID_PATH)
     public ResponseEntity<Void> deleteBudget(@PathVariable Long id) {
         budgetService.deleteBudget(id);
         return ResponseEntity.noContent().build();

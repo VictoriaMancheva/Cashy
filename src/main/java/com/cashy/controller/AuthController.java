@@ -15,8 +15,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import static com.cashy.util.Constant.*;
+
 @RestController
-@RequestMapping("/api/auth")
+@RequestMapping(AUTH_PATH)
 @RequiredArgsConstructor
 public class AuthController {
 
@@ -24,14 +26,14 @@ public class AuthController {
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
 
-    @PostMapping("/register")
+    @PostMapping(REGISTER_PATH)
     public ResponseEntity<AuthResponse> register(@RequestBody RegisterRequest request) {
         User user = userService.register(request.getEmail(), request.getUsername(), request.getPassword());
         String token = jwtService.generateToken(user.getEmail());
         return ResponseEntity.ok(new AuthResponse(token));
     }
 
-    @PostMapping("/login")
+    @PostMapping(LOGIN_PATH)
     public ResponseEntity<AuthResponse> login(@RequestBody LoginRequest request) {
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())

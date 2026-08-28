@@ -10,25 +10,27 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import static com.cashy.util.Constant.*;
+
 @RestController
-@RequestMapping("/api/users")
+@RequestMapping(USERS_PATH)
 @RequiredArgsConstructor
 public class UserController {
 
     private final UserService userService;
 
-    @GetMapping("/me")
+    @GetMapping(ME_PATH)
     public ResponseEntity<UserResponse> getCurrentUser() {
         return ResponseEntity.ok(toResponse(userService.getCurrentUser()));
     }
 
-    @PatchMapping("/me/username")
+    @PatchMapping(USERNAME_PATH)
     public ResponseEntity<UserResponse> updateUsername(@Valid @RequestBody UsernameUpdateRequest request) {
         User user = userService.getCurrentUser();
         return ResponseEntity.ok(toResponse(userService.updateUsername(user.getId(), request.getNewUsername())));
     }
 
-    @PatchMapping("/me/password")
+    @PatchMapping(PASSWORD_PATH)
     public ResponseEntity<Void> updatePassword(@Valid @RequestBody PasswordUpdateRequest request) {
         User user = userService.getCurrentUser();
         userService.updatePassword(user.getId(), request.getCurrentPassword(), request.getNewPassword());

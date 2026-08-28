@@ -1,5 +1,6 @@
 import {
   ArrowLeftRight,
+  BarChart2,
   Bell,
   CalendarDays,
   CreditCard,
@@ -28,6 +29,7 @@ const NAV_ITEMS = [
   { to: ROUTES.goals, icon: Target, label: 'Goals' },
   { to: ROUTES.dailyBudget, icon: CalendarDays, label: 'Daily Budget' },
   { to: ROUTES.recurringTransactions, icon: RefreshCw, label: 'Recurring' },
+  { to: ROUTES.analytics, icon: BarChart2, label: 'Analytics' },
 ] as const
 
 const BOTTOM_NAV_ITEMS = [

@@ -10,8 +10,11 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+import static com.cashy.util.Constant.ID_PATH;
+import static com.cashy.util.Constant.PAYMENT_METHODS_PATH;
+
 @RestController
-@RequestMapping("/api/payment-methods")
+@RequestMapping(PAYMENT_METHODS_PATH)
 @RequiredArgsConstructor
 public class PaymentMethodController {
 
@@ -27,14 +30,14 @@ public class PaymentMethodController {
         return ResponseEntity.ok(paymentMethodService.createPaymentMethod(request));
     }
 
-    @PutMapping("/{id}")
+    @PutMapping(ID_PATH)
     public ResponseEntity<PaymentMethodResponse> updatePaymentMethod(
             @PathVariable Long id,
             @Valid @RequestBody PaymentMethodRequest request) {
         return ResponseEntity.ok(paymentMethodService.updatePaymentMethod(id, request));
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping(ID_PATH)
     public ResponseEntity<Void> deletePaymentMethod(@PathVariable Long id) {
         paymentMethodService.deletePaymentMethod(id);
         return ResponseEntity.noContent().build();

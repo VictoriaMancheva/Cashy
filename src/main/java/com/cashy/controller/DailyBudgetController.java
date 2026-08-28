@@ -10,8 +10,11 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+import static com.cashy.util.Constant.DAILY_BUDGETS_PATH;
+import static com.cashy.util.Constant.ID_PATH;
+
 @RestController
-@RequestMapping("/api/daily-budgets")
+@RequestMapping(DAILY_BUDGETS_PATH)
 @RequiredArgsConstructor
 public class DailyBudgetController {
 
@@ -27,7 +30,7 @@ public class DailyBudgetController {
         return ResponseEntity.ok(dailyBudgetService.setDailyBudget(request));
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping(ID_PATH)
     public ResponseEntity<Void> deleteDailyBudget(@PathVariable Long id) {
         dailyBudgetService.deleteDailyBudget(id);
         return ResponseEntity.noContent().build();

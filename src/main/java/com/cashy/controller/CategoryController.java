@@ -10,8 +10,11 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+import static com.cashy.util.Constant.CATEGORIES_PATH;
+import static com.cashy.util.Constant.ID_PATH;
+
 @RestController
-@RequestMapping("/api/categories")
+@RequestMapping(CATEGORIES_PATH)
 @RequiredArgsConstructor
 public class CategoryController {
 
@@ -27,14 +30,14 @@ public class CategoryController {
         return ResponseEntity.ok(categoryService.createCategory(request));
     }
 
-    @PutMapping("/{id}")
+    @PutMapping(ID_PATH)
     public ResponseEntity<CategoryResponse> updateCategory(
             @PathVariable Long id,
             @Valid @RequestBody CategoryRequest request) {
         return ResponseEntity.ok(categoryService.updateCategory(id, request));
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping(ID_PATH)
     public ResponseEntity<Void> deleteCategory(@PathVariable Long id) {
         categoryService.deleteCategory(id);
         return ResponseEntity.noContent().build();

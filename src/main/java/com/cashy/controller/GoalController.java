@@ -11,8 +11,10 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+import static com.cashy.util.Constant.*;
+
 @RestController
-@RequestMapping("/api/goals")
+@RequestMapping(GOALS_PATH)
 @RequiredArgsConstructor
 public class GoalController {
 
@@ -28,21 +30,21 @@ public class GoalController {
         return ResponseEntity.ok(goalService.createGoal(request));
     }
 
-    @PutMapping("/{id}")
+    @PutMapping(ID_PATH)
     public ResponseEntity<GoalResponse> updateGoal(
             @PathVariable Long id,
             @Valid @RequestBody GoalRequest request) {
         return ResponseEntity.ok(goalService.updateGoal(id, request));
     }
 
-    @PatchMapping("/{id}/funds")
+    @PatchMapping(FUNDS_PATH)
     public ResponseEntity<GoalResponse> addFunds(
             @PathVariable Long id,
             @RequestParam @Positive Double amount) {
         return ResponseEntity.ok(goalService.addFunds(id, amount));
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping(ID_PATH)
     public ResponseEntity<Void> deleteGoal(@PathVariable Long id) {
         goalService.deleteGoal(id);
         return ResponseEntity.noContent().build();

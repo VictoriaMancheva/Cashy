@@ -13,8 +13,10 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDate;
 import java.util.List;
 
+import static com.cashy.util.Constant.TRANSACTIONS_PATH;
+
 @RestController
-@RequestMapping("/api/transactions")
+@RequestMapping(TRANSACTIONS_PATH)
 @RequiredArgsConstructor
 public class TransactionController {
 
