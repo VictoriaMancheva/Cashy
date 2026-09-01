@@ -27,6 +27,7 @@ public class RecurringTransactionService {
     private final TransactionRepository transactionRepository;
     private final CategoryRepository categoryRepository;
     private final PaymentMethodRepository paymentMethodRepository;
+    private final NotificationService notificationService;
     private final UserService userService;
 
     private static final String RECURRING_NOT_FOUND = "Recurring transaction not found: %d";
@@ -101,6 +102,40 @@ public class RecurringTransactionService {
         recurringTransactionRepository.save(rt);
 
         return toTransactionResponse(saved);
+    }
+
+    public void applyDueRecurringTransactions() {
+        LocalDate today = LocalDate.now();
+        List<RecurringTransaction> due = recurringTransactionRepository
+                .findByNextDateLessThanEqualOrderByNextDateAsc(today);
+
+        for (RecurringTransaction rt : due) {
+            try {
+                Transaction transaction = new Transaction();
+                transaction.setAmount(rt.getAmount());
+                transaction.setDescription(rt.getDescription());
+                transaction.setDate(rt.getNextDate());
+                transaction.setType(rt.getType() != null ? rt.getType() : Transaction.TransactionType.EXPENSE);
+                transaction.setUser(rt.getUser());
+                transaction.setCategory(rt.getCategory());
+                transaction.setPaymentMethod(rt.getPaymentMethod());
+                transactionRepository.save(transaction);
+
+                LocalDate nextDate = switch (rt.getFrequency()) {
+                    case WEEKLY -> rt.getNextDate().plusWeeks(1);
+                    case MONTHLY -> rt.getNextDate().plusMonths(1);
+                };
+                rt.setNextDate(nextDate);
+                recurringTransactionRepository.save(rt);
+
+                String desc = rt.getDescription() != null ? rt.getDescription() : "Recurring transaction";
+                notificationService.createNotification(rt.getUser(),
+                        String.format("Auto-applied: \"%s\" — %.2f on %s. Next due: %s",
+                                desc, rt.getAmount(), transaction.getDate(), nextDate));
+            } catch (Exception ignored) {
+                // skip this entry and continue with the rest
+            }
+        }
     }
 
     public void deleteRecurringTransaction(Long id) {

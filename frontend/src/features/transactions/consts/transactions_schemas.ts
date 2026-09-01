@@ -22,8 +22,17 @@ export const TransactionFormSchema = z.object({
   date: z.string().optional(),
   categoryId: z.number().nullable().optional(),
   paymentMethodId: z.number().nullable().optional(),
+  receiptImage: z.string().nullable().optional(),
+})
+
+export const ReceiptScanResultSchema = z.object({
+  amount: z.number().nullable(),
+  description: z.string().nullable(),
+  date: z.string().nullable(),
+  receiptImage: z.string().nullable(),
 })
 
 export type Transaction = z.infer<typeof TransactionSchema>
 export type TransactionFormValues = z.infer<typeof TransactionFormSchema>
 export type TransactionType = (typeof TRANSACTION_TYPES)[number]
+export type ReceiptScanResult = z.infer<typeof ReceiptScanResultSchema>

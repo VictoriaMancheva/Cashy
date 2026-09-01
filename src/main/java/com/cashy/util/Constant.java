@@ -17,6 +17,11 @@ public class Constant {
     public static final String RECURRING_TRANSACTIONS_PATH = "/api/recurring-transactions";
     public static final String TRANSACTIONS_PATH = "/api/transactions";
     public static final String USERS_PATH = "/api/users";
+    public static final String RECEIPTS_PATH = "/api/receipts";
+    public static final String ADMIN_PATH = "/api/admin";
+    public static final String PREMIUM_PATH = "/api/premium";
+    public static final String SCAN_PATH = "/scan";
+    public static final String ROLE_PATH = "/{id}/role";
 
 
     public static final String ID_PATH = "/{id}";
@@ -25,6 +30,7 @@ public class Constant {
     public static final String READ_ALL_PATH = "/read-all";
     public static final String MONTHLY_PATH = "/monthly";
     public static final String BY_CATEGORY_PATH = "/by-category";
+    public static final String FORECAST_PATH = "/forecast";
     public static final String REGISTER_PATH = "/register";
     public static final String LOGIN_PATH = "/login";
     public static final String SUMMARY_PATH = "/summary";

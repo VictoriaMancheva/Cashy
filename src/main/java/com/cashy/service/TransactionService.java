@@ -35,6 +35,7 @@ public class TransactionService {
     private static final String CATEGORY_NOT_FOUND = "Category not found: %d";
     private static final String PAYMENT_METHOD_NOT_FOUND = "Payment method not found: %d";
     private static final String ACCESS_DENIED = "Access denied";
+    private static final double BUDGET_WARN_THRESHOLD = 0.8;
 
     public List<TransactionResponse> getTransactions() {
         User user = userService.getCurrentUser();
@@ -72,6 +73,8 @@ public class TransactionService {
         if (saved.getType() == Transaction.TransactionType.EXPENSE) {
             checkDailyBudgetExceeded(user, saved.getDate());
             checkBudgetCategoryExceeded(user, saved);
+            checkBudgetCategoryApproaching(user, saved);
+            checkOverallBudgetApproaching(user, saved);
         }
         return toResponse(saved);
     }
@@ -132,6 +135,46 @@ public class TransactionService {
                                             bc.getCategory().getName(), spent, bc.getLimitAmount()));
                         }
                     });
+        });
+    }
+
+    private void checkBudgetCategoryApproaching(User user, Transaction transaction) {
+        if (transaction.getCategory() == null) return;
+        LocalDate date = transaction.getDate();
+        budgetRepository.findByUserAndMonthAndYear(user, date.getMonthValue(), date.getYear()).ifPresent(budget -> {
+            LocalDate startDate = LocalDate.of(budget.getYear(), budget.getMonth(), 1);
+            LocalDate endDate = startDate.withDayOfMonth(startDate.lengthOfMonth());
+            budgetCategoryRepository.findByBudget(budget).stream()
+                    .filter(bc -> bc.getCategory().getId().equals(transaction.getCategory().getId()))
+                    .findFirst()
+                    .ifPresent(bc -> {
+                        Double spent = transactionRepository.sumExpenseByUserAndCategoryAndDateRange(
+                                user, bc.getCategory(), startDate, endDate);
+                        double spentBefore = spent - transaction.getAmount();
+                        double warnAt = bc.getLimitAmount() * BUDGET_WARN_THRESHOLD;
+                        if (spentBefore < warnAt && spent >= warnAt && spent < bc.getLimitAmount()) {
+                            notificationService.createNotification(user,
+                                    String.format("Heads up: %.0f%% of your \"%s\" budget used. Spent: %.2f / Limit: %.2f",
+                                            BUDGET_WARN_THRESHOLD * 100, bc.getCategory().getName(), spent, bc.getLimitAmount()));
+                        }
+                    });
+        });
+    }
+
+    private void checkOverallBudgetApproaching(User user, Transaction transaction) {
+        LocalDate date = transaction.getDate();
+        budgetRepository.findByUserAndMonthAndYear(user, date.getMonthValue(), date.getYear()).ifPresent(budget -> {
+            LocalDate startDate = LocalDate.of(budget.getYear(), budget.getMonth(), 1);
+            LocalDate endDate = startDate.withDayOfMonth(startDate.lengthOfMonth());
+            Double totalSpent = transactionRepository.sumByUserAndTypeAndDateRange(
+                    user, Transaction.TransactionType.EXPENSE, startDate, endDate);
+            double spentBefore = totalSpent - transaction.getAmount();
+            double warnAt = budget.getTotalAmount() * BUDGET_WARN_THRESHOLD;
+            if (spentBefore < warnAt && totalSpent >= warnAt && totalSpent < budget.getTotalAmount()) {
+                notificationService.createNotification(user,
+                        String.format("Heads up: you've used %.0f%% of your monthly budget. Spent: %.2f / Total: %.2f",
+                                BUDGET_WARN_THRESHOLD * 100, totalSpent, budget.getTotalAmount()));
+            }
         });
     }
 

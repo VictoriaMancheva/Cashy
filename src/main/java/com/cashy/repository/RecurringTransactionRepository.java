@@ -14,4 +14,6 @@ public interface RecurringTransactionRepository extends JpaRepository<RecurringT
     List<RecurringTransaction> findByUserOrderByNextDateAsc(User user);
 
     List<RecurringTransaction> findByNextDateLessThanEqualOrderByNextDateAsc(LocalDate date);
+
+    List<RecurringTransaction> findByNextDate(LocalDate date);
 }

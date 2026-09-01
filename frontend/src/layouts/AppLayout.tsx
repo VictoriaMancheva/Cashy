@@ -9,6 +9,7 @@ import {
   LogOut,
   PieChart,
   RefreshCw,
+  Shield,
   Tag,
   Target,
   User,
@@ -17,6 +18,7 @@ import { NavLink, useNavigate } from 'react-router-dom'
 
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
+import { useProfile_meQuery } from '@/features/profile/hooks/useProfile_meQuery'
 import { cn } from '@/lib/utils'
 import { ROUTES } from '@/routes'
 
@@ -43,6 +45,8 @@ type Props = {
 
 export const AppLayout = ({ children }: Props) => {
   const navigate = useNavigate()
+  const { data: currentUser } = useProfile_meQuery()
+  const isAdmin = currentUser?.role === 'ADMIN'
 
   const handleLogout = () => {
     localStorage.removeItem('token')
@@ -82,6 +86,12 @@ export const AppLayout = ({ children }: Props) => {
               {label}
             </NavLink>
           ))}
+          {isAdmin && (
+            <NavLink to={ROUTES.admin} className={navClass}>
+              <Shield className="h-4 w-4 shrink-0" />
+              Admin
+            </NavLink>
+          )}
           <Button
             variant="ghost"
             className="w-full justify-start gap-3 text-muted-foreground hover:text-accent-foreground px-3"

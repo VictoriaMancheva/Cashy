@@ -1,16 +1,19 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Loader2 } from 'lucide-react'
+import { Loader2, ScanLine } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 
+import { PremiumGate } from '@/components/common/PremiumGate'
 import { Button } from '@/components/ui/button'
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { CONFIG } from '@/config'
 import type { Transaction, TransactionFormValues } from '@/features/transactions/consts/transactions_schemas'
 import { TransactionFormSchema } from '@/features/transactions/consts/transactions_schemas'
 import { useTransactions_createMutation } from '@/features/transactions/hooks/useTransactions_createMutation'
+import { useTransactions_scanReceiptMutation } from '@/features/transactions/hooks/useTransactions_scanReceiptMutation'
 import { useTransactions_updateMutation } from '@/features/transactions/hooks/useTransactions_updateMutation'
 import { useSharedCategories } from '@/hooks/useSharedCategories'
 import { useSharedPaymentMethods } from '@/hooks/useSharedPaymentMethods'
@@ -26,8 +29,10 @@ export const Transactions_Form = ({ defaultValues, onSuccess }: Props) => {
   const { data: paymentMethods } = useSharedPaymentMethods()
   const createMutation = useTransactions_createMutation()
   const updateMutation = useTransactions_updateMutation()
+  const scanMutation = useTransactions_scanReceiptMutation()
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
-  const isPending = createMutation.isPending || updateMutation.isPending
+  const isPending = createMutation.isPending || updateMutation.isPending || scanMutation.isPending
 
   const form = useForm<TransactionFormValues>({
     resolver: zodResolver(TransactionFormSchema),
@@ -38,6 +43,7 @@ export const Transactions_Form = ({ defaultValues, onSuccess }: Props) => {
       date: defaultValues?.date ?? new Date().toISOString().split('T')[0],
       categoryId: defaultValues?.categoryId ?? null,
       paymentMethodId: defaultValues?.paymentMethodId ?? null,
+      receiptImage: defaultValues?.receiptImage ?? null,
     },
   })
 
@@ -49,8 +55,22 @@ export const Transactions_Form = ({ defaultValues, onSuccess }: Props) => {
       date: defaultValues?.date ?? new Date().toISOString().split('T')[0],
       categoryId: defaultValues?.categoryId ?? null,
       paymentMethodId: defaultValues?.paymentMethodId ?? null,
+      receiptImage: defaultValues?.receiptImage ?? null,
     })
   }, [defaultValues, form])
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    scanMutation.mutate(file, {
+      onSuccess: (result) => {
+        if (result.amount != null) form.setValue('amount', result.amount)
+        if (result.description) form.setValue('description', result.description)
+        if (result.date) form.setValue('date', result.date)
+        if (result.receiptImage) form.setValue('receiptImage', result.receiptImage)
+      },
+    })
+  }
 
   const onSubmit = (values: TransactionFormValues) => {
     if (defaultValues?.id != null) {
@@ -60,9 +80,52 @@ export const Transactions_Form = ({ defaultValues, onSuccess }: Props) => {
     }
   }
 
+  const receiptImage = form.watch('receiptImage')
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <PremiumGate compact>
+          <div className="space-y-2">
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handleFileChange}
+            />
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={scanMutation.isPending}
+            >
+              {scanMutation.isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Scanning receipt...
+                </>
+              ) : (
+                <>
+                  <ScanLine className="mr-2 h-4 w-4" />
+                  Scan Receipt
+                </>
+              )}
+            </Button>
+            {scanMutation.isError && (
+              <p className="text-sm text-destructive">Failed to scan receipt. Please fill in fields manually.</p>
+            )}
+            {receiptImage && (
+              <img
+                src={`${CONFIG.cashyApiBaseUrl}${receiptImage}`}
+                alt="Scanned receipt"
+                className="max-h-48 w-full rounded border object-contain"
+              />
+            )}
+          </div>
+        </PremiumGate>
+
         <FormField
           control={form.control}
           name="amount"

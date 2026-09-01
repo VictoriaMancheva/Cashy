@@ -1,6 +1,7 @@
 package com.cashy.service;
 
 import com.cashy.dto.CategoryBreakdownResponse;
+import com.cashy.dto.ForecastResponse;
 import com.cashy.dto.MonthlyBreakdownResponse;
 import com.cashy.entity.Transaction;
 import com.cashy.entity.User;
@@ -54,6 +55,63 @@ public class AnalyticsService {
             result.add(new MonthlyBreakdownResponse(month.getYear(), month.getMonthValue(), sums[0], sums[1]));
         }
         return result;
+    }
+
+    public ForecastResponse getForecast() {
+        User user = userService.getCurrentUser();
+        LocalDate today = LocalDate.now();
+        LocalDate startDate = today.minusMonths(MONTHS_HISTORY - 1).withDayOfMonth(1);
+
+        List<Transaction> transactions = transactionRepository
+                .findByUserAndDateBetweenOrderByDateDesc(user, startDate, today);
+
+        double[] incomeByIndex = new double[MONTHS_HISTORY];
+        double[] expensesByIndex = new double[MONTHS_HISTORY];
+
+        for (int i = 0; i < MONTHS_HISTORY; i++) {
+            LocalDate month = today.minusMonths(MONTHS_HISTORY - 1 - i).withDayOfMonth(1);
+            int y = month.getYear();
+            int m = month.getMonthValue();
+            for (Transaction t : transactions) {
+                if (t.getDate().getYear() == y && t.getDate().getMonthValue() == m) {
+                    if (t.getType() == Transaction.TransactionType.INCOME) {
+                        incomeByIndex[i] += t.getAmount();
+                    } else {
+                        expensesByIndex[i] += t.getAmount();
+                    }
+                }
+            }
+        }
+
+        double forecastIncome = linearRegressionForecast(incomeByIndex);
+        double forecastExpenses = linearRegressionForecast(expensesByIndex);
+
+        LocalDate nextMonth = today.plusMonths(1).withDayOfMonth(1);
+        return new ForecastResponse(
+                nextMonth.getMonthValue(),
+                nextMonth.getYear(),
+                Math.round(forecastIncome * 100.0) / 100.0,
+                Math.round(forecastExpenses * 100.0) / 100.0,
+                Math.round((forecastIncome - forecastExpenses) * 100.0) / 100.0
+        );
+    }
+
+    private double linearRegressionForecast(double[] values) {
+        int n = values.length;
+        double sumX = 0, sumY = 0, sumXY = 0, sumX2 = 0;
+        for (int i = 0; i < n; i++) {
+            sumX += i;
+            sumY += values[i];
+            sumXY += (double) i * values[i];
+            sumX2 += (double) i * i;
+        }
+        double denominator = n * sumX2 - sumX * sumX;
+        if (denominator == 0) {
+            return Math.max(0, sumY / n);
+        }
+        double slope = (n * sumXY - sumX * sumY) / denominator;
+        double intercept = (sumY - slope * sumX) / n;
+        return Math.max(0, intercept + slope * n);
     }
 
     public List<CategoryBreakdownResponse> getCategoryBreakdown(int month, int year) {

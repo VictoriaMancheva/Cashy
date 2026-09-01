@@ -6,6 +6,8 @@ import com.cashy.dto.RegisterRequest;
 import com.cashy.entity.User;
 import com.cashy.service.JwtService;
 import com.cashy.service.UserService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -20,6 +22,7 @@ import static com.cashy.util.Constant.*;
 @RestController
 @RequestMapping(AUTH_PATH)
 @RequiredArgsConstructor
+@Tag(name = "Authentication", description = "Register a new account or log in to obtain a JWT token")
 public class AuthController {
 
     private final UserService userService;
@@ -27,6 +30,7 @@ public class AuthController {
     private final AuthenticationManager authenticationManager;
 
     @PostMapping(REGISTER_PATH)
+    @Operation(summary = "Register", description = "Create a new user account and receive a JWT token")
     public ResponseEntity<AuthResponse> register(@RequestBody RegisterRequest request) {
         User user = userService.register(request.getEmail(), request.getUsername(), request.getPassword());
         String token = jwtService.generateToken(user.getEmail());
@@ -34,6 +38,7 @@ public class AuthController {
     }
 
     @PostMapping(LOGIN_PATH)
+    @Operation(summary = "Login", description = "Authenticate with email and password and receive a JWT token")
     public ResponseEntity<AuthResponse> login(@RequestBody LoginRequest request) {
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())

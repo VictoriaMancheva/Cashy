@@ -16,7 +16,9 @@ import {
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { PremiumGate } from '@/components/common/PremiumGate'
 import { useAnalytics_byCategoryQuery } from '@/features/analytics/hooks/useAnalytics_byCategoryQuery'
+import { useAnalytics_forecastQuery } from '@/features/analytics/hooks/useAnalytics_forecastQuery'
 import { useAnalytics_monthlyQuery } from '@/features/analytics/hooks/useAnalytics_monthlyQuery'
 import { AppLayout } from '@/layouts/AppLayout'
 import { MONTHS } from '@/utils/formatters'
@@ -38,6 +40,7 @@ export const Analytics_Page = () => {
 
   const { data: monthly } = useAnalytics_monthlyQuery()
   const { data: byCategory } = useAnalytics_byCategoryQuery(selectedMonth, selectedYear)
+  const { data: forecast } = useAnalytics_forecastQuery()
 
   const chartData = (monthly ?? []).map((row) => ({
     name: MONTH_NAMES[row.month - 1],
@@ -52,6 +55,10 @@ export const Analytics_Page = () => {
 
   const years = Array.from({ length: 5 }, (_, i) => today.getFullYear() - i)
 
+  const forecastMonthLabel = forecast
+    ? `${MONTH_NAMES[forecast.forecastMonth - 1]} ${forecast.forecastYear}`
+    : null
+
   return (
     <AppLayout>
       <div className="space-y-6">
@@ -59,6 +66,43 @@ export const Analytics_Page = () => {
           <h1 className="text-2xl font-bold text-foreground">Analytics</h1>
           <p className="text-muted-foreground mt-1">Income and spending trends over time.</p>
         </div>
+
+        <PremiumGate>
+          {forecast && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">
+                  Forecast for {forecastMonthLabel}
+                </CardTitle>
+                <p className="text-xs text-muted-foreground">
+                  Linear trend projection based on your last 12 months of activity.
+                </p>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="rounded-lg border p-4 text-center">
+                    <p className="text-xs text-muted-foreground mb-1">Projected Income</p>
+                    <p className="text-lg font-semibold text-emerald-600">
+                      {currencyFormatter(forecast.forecastIncome)}
+                    </p>
+                  </div>
+                  <div className="rounded-lg border p-4 text-center">
+                    <p className="text-xs text-muted-foreground mb-1">Projected Expenses</p>
+                    <p className="text-lg font-semibold text-red-500">
+                      {currencyFormatter(forecast.forecastExpenses)}
+                    </p>
+                  </div>
+                  <div className="rounded-lg border p-4 text-center">
+                    <p className="text-xs text-muted-foreground mb-1">Projected Net</p>
+                    <p className={`text-lg font-semibold ${forecast.forecastNet >= 0 ? 'text-emerald-600' : 'text-red-500'}`}>
+                      {currencyFormatter(forecast.forecastNet)}
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </PremiumGate>
 
         <Card>
           <CardHeader>

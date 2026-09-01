@@ -13,5 +13,14 @@ export const CategoryBreakdownSchema = z.object({
   amount: z.number(),
 })
 
+export const ForecastSchema = z.object({
+  forecastMonth: z.number(),
+  forecastYear: z.number(),
+  forecastIncome: z.number(),
+  forecastExpenses: z.number(),
+  forecastNet: z.number(),
+})
+
 export type MonthlyBreakdown = z.infer<typeof MonthlyBreakdownSchema>
 export type CategoryBreakdown = z.infer<typeof CategoryBreakdownSchema>
+export type Forecast = z.infer<typeof ForecastSchema>

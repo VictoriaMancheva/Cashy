@@ -23,6 +23,9 @@ public class Goal {
 
     private LocalDate deadline;
 
+    @Column(name = "last_deadline_notification")
+    private LocalDate lastDeadlineNotification;
+
     @ManyToOne
     @JoinColumn(name = "user_id")
     private User user;

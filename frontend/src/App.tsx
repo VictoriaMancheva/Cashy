@@ -1,7 +1,9 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
 
+import { AdminRoute } from '@/components/common/AdminRoute'
 import { ProtectedRoute } from '@/components/common/ProtectedRoute'
 import { PublicRoute } from '@/components/common/PublicRoute'
+import { Admin_Page } from '@/features/admin/Admin_Page'
 import { Analytics_Page } from '@/features/analytics/Analytics_Page'
 import { Budgets_Page } from '@/features/budgets/Budgets_Page'
 import { Categories_Page } from '@/features/categories/Categories_Page'
@@ -32,6 +34,7 @@ export const App = () => (
     <Route path={ROUTES.notifications} element={<ProtectedRoute><Notifications_Page /></ProtectedRoute>} />
     <Route path={ROUTES.profile} element={<ProtectedRoute><Profile_Page /></ProtectedRoute>} />
     <Route path={ROUTES.analytics} element={<ProtectedRoute><Analytics_Page /></ProtectedRoute>} />
+    <Route path={ROUTES.admin} element={<AdminRoute><Admin_Page /></AdminRoute>} />
     <Route path="*" element={<Navigate to={ROUTES.login} replace />} />
   </Routes>
 )
