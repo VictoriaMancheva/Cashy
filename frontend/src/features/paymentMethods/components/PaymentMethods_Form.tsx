@@ -11,6 +11,7 @@ import type { PaymentMethod, PaymentMethodFormValues } from '@/features/paymentM
 import { PaymentMethodFormSchema } from '@/features/paymentMethods/consts/paymentMethods_schemas'
 import { usePaymentMethods_createMutation } from '@/features/paymentMethods/hooks/usePaymentMethods_createMutation'
 import { usePaymentMethods_updateMutation } from '@/features/paymentMethods/hooks/usePaymentMethods_updateMutation'
+import { useTranslation } from '@/i18n/useTranslation'
 
 type Props = {
   defaultValues?: PaymentMethod | null
@@ -22,6 +23,7 @@ export const PaymentMethods_Form = ({ defaultValues, onSuccess }: Props) => {
 
   const createMutation = usePaymentMethods_createMutation()
   const updateMutation = usePaymentMethods_updateMutation()
+  const { t } = useTranslation()
 
   const isPending = createMutation.isPending || updateMutation.isPending
 
@@ -53,9 +55,9 @@ export const PaymentMethods_Form = ({ defaultValues, onSuccess }: Props) => {
           name="name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Name</FormLabel>
+              <FormLabel>{t('common.name')}</FormLabel>
               <FormControl>
-                <Input placeholder="Payment method name" {...field} />
+                <Input placeholder={t('paymentMethods.namePlaceholder')} {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -63,7 +65,7 @@ export const PaymentMethods_Form = ({ defaultValues, onSuccess }: Props) => {
         />
         <Button type="submit" disabled={isPending} className="w-full">
           {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          {isEditing ? 'Save changes' : 'Create payment method'}
+          {isEditing ? t('common.saveChanges') : t('paymentMethods.create')}
         </Button>
       </form>
     </Form>

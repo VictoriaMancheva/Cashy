@@ -1,5 +1,7 @@
 import { z } from 'zod'
 
+import { i18nKey } from '@/i18n/translate'
+
 export const UserSchema = z.object({
   id: z.number(),
   email: z.string(),
@@ -9,17 +11,17 @@ export const UserSchema = z.object({
 })
 
 export const UsernameFormSchema = z.object({
-  username: z.string().min(3, 'Username must be at least 3 characters'),
+  username: z.string().min(3, i18nKey('validation.usernameMin3')),
 })
 
 export const PasswordFormSchema = z
   .object({
-    currentPassword: z.string().min(1, 'Current password is required'),
-    newPassword: z.string().min(6, 'New password must be at least 6 characters'),
-    confirmPassword: z.string().min(1, 'Please confirm your password'),
+    currentPassword: z.string().min(1, i18nKey('validation.currentPasswordRequired')),
+    newPassword: z.string().min(6, i18nKey('validation.passwordMin6')),
+    confirmPassword: z.string().min(1, i18nKey('validation.confirmPasswordRequired')),
   })
   .refine((data) => data.newPassword === data.confirmPassword, {
-    message: 'Passwords do not match',
+    message: i18nKey('validation.passwordsMismatch'),
     path: ['confirmPassword'],
   })
 

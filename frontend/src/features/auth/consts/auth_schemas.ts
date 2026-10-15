@@ -1,14 +1,16 @@
 import { z } from 'zod'
 
+import { i18nKey } from '@/i18n/translate'
+
 export const LoginSchema = z.object({
-  email: z.string().email('Please enter a valid email'),
-  password: z.string().min(1, 'Password is required'),
+  email: z.string().email(i18nKey('validation.emailInvalid')),
+  password: z.string().min(1, i18nKey('validation.passwordRequired')),
 })
 
 export const RegisterSchema = z.object({
-  email: z.string().email('Please enter a valid email'),
-  username: z.string().min(2, 'Username must be at least 2 characters'),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
+  email: z.string().email(i18nKey('validation.emailInvalid')),
+  username: z.string().min(2, i18nKey('validation.usernameMin2')),
+  password: z.string().min(6, i18nKey('validation.passwordMin6')),
 })
 
 export const AuthResponseSchema = z.object({

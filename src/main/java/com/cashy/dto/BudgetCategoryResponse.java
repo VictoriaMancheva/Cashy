@@ -12,4 +12,5 @@ public class BudgetCategoryResponse {
     private String categoryName;
     private Double limitAmount;
     private Double spentAmount;
+    private Double remaining;
 }

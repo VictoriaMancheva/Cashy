@@ -13,7 +13,8 @@ import { BudgetFormSchema } from '@/features/budgets/consts/budgets_schemas'
 import { useBudgets_createMutation } from '@/features/budgets/hooks/useBudgets_createMutation'
 import { useBudgets_updateMutation } from '@/features/budgets/hooks/useBudgets_updateMutation'
 import { useSharedCategories } from '@/hooks/useSharedCategories'
-import { CURRENT_YEAR, MONTHS, SELECT_NONE } from '@/utils/formatters'
+import { useTranslation } from '@/i18n/useTranslation'
+import { CURRENT_YEAR, formatMonth, MONTHS, SELECT_NONE } from '@/utils/formatters'
 
 type Props = {
   defaultValues?: Budget | null
@@ -22,6 +23,7 @@ type Props = {
 
 export const Budgets_Form = ({ defaultValues, onSuccess }: Props) => {
   const { data: categories } = useSharedCategories()
+  const { t } = useTranslation()
   const createMutation = useBudgets_createMutation()
   const updateMutation = useBudgets_updateMutation()
   const [newCatId, setNewCatId] = useState<string>(SELECT_NONE)
@@ -79,7 +81,7 @@ export const Budgets_Form = ({ defaultValues, onSuccess }: Props) => {
           name="totalAmount"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Total Budget</FormLabel>
+              <FormLabel>{t('budgets.totalBudget')}</FormLabel>
               <FormControl>
                 <Input
                   type="number"
@@ -100,20 +102,20 @@ export const Budgets_Form = ({ defaultValues, onSuccess }: Props) => {
             name="month"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Month</FormLabel>
+                <FormLabel>{t('budgets.month')}</FormLabel>
                 <Select
                   onValueChange={(v) => field.onChange(Number(v))}
                   value={String(field.value)}
                 >
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder="Month" />
+                      <SelectValue placeholder={t('budgets.month')} />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
                     {MONTHS.map((m) => (
-                      <SelectItem key={m.value} value={String(m.value)}>
-                        {m.label}
+                      <SelectItem key={m} value={String(m)}>
+                        {formatMonth(m)}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -128,7 +130,7 @@ export const Budgets_Form = ({ defaultValues, onSuccess }: Props) => {
             name="year"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Year</FormLabel>
+                <FormLabel>{t('budgets.year')}</FormLabel>
                 <FormControl>
                   <Input
                     type="number"
@@ -144,12 +146,12 @@ export const Budgets_Form = ({ defaultValues, onSuccess }: Props) => {
         </div>
 
         <div className="space-y-2">
-          <FormLabel>Category Limits</FormLabel>
+          <FormLabel>{t('budgets.categoryLimits')}</FormLabel>
           {fields.map((field, index) => {
             const cat = categories?.find((c) => c.id === field.categoryId)
             return (
               <div key={field.id} className="flex items-center gap-2">
-                <span className="flex-1 text-sm">{cat?.name ?? `Category ${field.categoryId}`}</span>
+                <span className="flex-1 text-sm">{cat?.name ?? t('budgets.categoryFallback', { id: field.categoryId })}</span>
                 <FormField
                   control={form.control}
                   name={`categories.${index}.limitAmount`}
@@ -168,7 +170,13 @@ export const Budgets_Form = ({ defaultValues, onSuccess }: Props) => {
                     </FormItem>
                   )}
                 />
-                <Button type="button" variant="ghost" size="icon" onClick={() => remove(index)}>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => remove(index)}
+                  aria-label={t('budgets.removeCategoryLimitAria')}
+                >
                   <Trash2 className="h-4 w-4 text-destructive" />
                 </Button>
               </div>
@@ -178,7 +186,7 @@ export const Budgets_Form = ({ defaultValues, onSuccess }: Props) => {
           <div className="flex items-center gap-2">
             <Select value={newCatId} onValueChange={setNewCatId}>
               <SelectTrigger className="flex-1">
-                <SelectValue placeholder="Add category limit..." />
+                <SelectValue placeholder={t('budgets.addCategoryLimit')} />
               </SelectTrigger>
               <SelectContent>
                 {categories
@@ -190,7 +198,13 @@ export const Budgets_Form = ({ defaultValues, onSuccess }: Props) => {
                   ))}
               </SelectContent>
             </Select>
-            <Button type="button" variant="outline" size="icon" onClick={handleAddCategory}>
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              onClick={handleAddCategory}
+              aria-label={t('budgets.addCategoryLimitAria')}
+            >
               <Plus className="h-4 w-4" />
             </Button>
           </div>
@@ -198,7 +212,7 @@ export const Budgets_Form = ({ defaultValues, onSuccess }: Props) => {
 
         <Button type="submit" className="w-full" disabled={isPending}>
           {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          {defaultValues != null ? 'Save Changes' : 'Create Budget'}
+          {defaultValues != null ? t('common.saveChanges') : t('budgets.create')}
         </Button>
       </form>
     </Form>

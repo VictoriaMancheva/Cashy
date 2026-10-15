@@ -2,6 +2,7 @@ package com.cashy.controller;
 
 import com.cashy.dto.DailyBudgetRequest;
 import com.cashy.dto.DailyBudgetResponse;
+import com.cashy.dto.TodayBudgetResponse;
 import com.cashy.service.DailyBudgetService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -15,6 +16,7 @@ import java.util.List;
 
 import static com.cashy.util.Constant.DAILY_BUDGETS_PATH;
 import static com.cashy.util.Constant.ID_PATH;
+import static com.cashy.util.Constant.TODAY_PATH;
 
 @RestController
 @RequestMapping(DAILY_BUDGETS_PATH)
@@ -28,6 +30,12 @@ public class DailyBudgetController {
     @GetMapping
     public ResponseEntity<List<DailyBudgetResponse>> getDailyBudgets() {
         return ResponseEntity.ok(dailyBudgetService.getDailyBudgets());
+    }
+
+    @GetMapping(TODAY_PATH)
+    @Operation(summary = "Get today's effective budget (manual or calculated)")
+    public ResponseEntity<TodayBudgetResponse> getTodayBudget() {
+        return ResponseEntity.ok(dailyBudgetService.getTodayBudget());
     }
 
     @PostMapping

@@ -112,6 +112,8 @@ public class BudgetService {
     private BudgetResponse toResponse(Budget budget, List<BudgetCategory> categories) {
         LocalDate startDate = LocalDate.of(budget.getYear(), budget.getMonth(), 1);
         LocalDate endDate = startDate.withDayOfMonth(startDate.lengthOfMonth());
+        Double totalSpent = transactionRepository.sumByUserAndTypeAndDateRange(
+                budget.getUser(), com.cashy.entity.Transaction.TransactionType.EXPENSE, startDate, endDate);
         List<BudgetCategoryResponse> categoryResponses = categories.stream()
                 .map(bc -> {
                     Double spent = transactionRepository.sumExpenseByUserAndCategoryAndDateRange(
@@ -121,12 +123,15 @@ public class BudgetService {
                             bc.getCategory().getId(),
                             bc.getCategory().getName(),
                             bc.getLimitAmount(),
-                            spent);
+                            spent,
+                            bc.getLimitAmount() - spent);
                 })
                 .toList();
         return new BudgetResponse(
                 budget.getId(),
                 budget.getTotalAmount(),
+                totalSpent,
+                budget.getTotalAmount() - totalSpent,
                 budget.getMonth(),
                 budget.getYear(),
                 categoryResponses);

@@ -8,8 +8,10 @@ import { Input } from '@/components/ui/input'
 import type { RegisterFormValues } from '@/features/auth/consts/auth_schemas'
 import { RegisterSchema } from '@/features/auth/consts/auth_schemas'
 import { useAuth_registerMutation } from '@/features/auth/hooks/useAuth_registerMutation'
+import { useTranslation } from '@/i18n/useTranslation'
 
 export const Auth_RegisterForm = () => {
+  const { t } = useTranslation()
   const { mutate: register, isPending, isError, error } = useAuth_registerMutation()
 
   const form = useForm<RegisterFormValues>({
@@ -20,7 +22,7 @@ export const Auth_RegisterForm = () => {
   const onSubmit = (values: RegisterFormValues) => register(values)
 
   const errorMessage =
-    isError && error instanceof Error ? error.message : 'Registration failed. Please try again.'
+    isError && error instanceof Error ? error.message : t('auth.registrationFailed')
 
   return (
     <Form {...form}>
@@ -35,7 +37,7 @@ export const Auth_RegisterForm = () => {
           name="email"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Email</FormLabel>
+              <FormLabel>{t('auth.email')}</FormLabel>
               <FormControl>
                 <Input type="email" placeholder="you@example.com" {...field} />
               </FormControl>
@@ -48,7 +50,7 @@ export const Auth_RegisterForm = () => {
           name="username"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Username</FormLabel>
+              <FormLabel>{t('auth.username')}</FormLabel>
               <FormControl>
                 <Input type="text" placeholder="johndoe" {...field} />
               </FormControl>
@@ -61,7 +63,7 @@ export const Auth_RegisterForm = () => {
           name="password"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Password</FormLabel>
+              <FormLabel>{t('auth.password')}</FormLabel>
               <FormControl>
                 <Input type="password" placeholder="••••••••" {...field} />
               </FormControl>
@@ -71,7 +73,7 @@ export const Auth_RegisterForm = () => {
         />
         <Button type="submit" className="w-full" disabled={isPending}>
           {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          Create account
+          {t('auth.createAccount')}
         </Button>
       </form>
     </Form>

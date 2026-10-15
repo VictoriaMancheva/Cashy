@@ -11,6 +11,7 @@ export const useDailyBudget_deleteMutation = (): UseMutationResult<void, Error, 
     mutationFn: dailyBudget_delete,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: dailyBudgetKeys.all() })
+      queryClient.invalidateQueries({ queryKey: dailyBudgetKeys.today() })
     },
   })
 }

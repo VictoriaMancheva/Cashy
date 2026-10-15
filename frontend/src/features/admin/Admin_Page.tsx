@@ -24,10 +24,11 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { useAdmin_deleteUserMutation } from '@/features/admin/hooks/useAdmin_deleteUserMutation'
 import { useAdmin_updateRoleMutation } from '@/features/admin/hooks/useAdmin_updateRoleMutation'
 import { useAdmin_usersQuery } from '@/features/admin/hooks/useAdmin_usersQuery'
+import { useTranslation } from '@/i18n/useTranslation'
 import { AppLayout } from '@/layouts/AppLayout'
 import { formatDate } from '@/utils/formatters'
-
-const ROLE_OPTIONS = ['USER', 'PREMIUM', 'ADMIN'] as const
+import type { Role } from '@/utils/roles'
+import { isRole, ROLES } from '@/utils/roles'
 
 const roleBadgeVariant = (role: string) => {
   if (role === 'ADMIN') return 'destructive'
@@ -36,12 +37,13 @@ const roleBadgeVariant = (role: string) => {
 }
 
 export const Admin_Page = () => {
+  const { t } = useTranslation()
   const { data: users, isLoading } = useAdmin_usersQuery()
   const updateRoleMutation = useAdmin_updateRoleMutation()
   const deleteUserMutation = useAdmin_deleteUserMutation()
   const [deleteId, setDeleteId] = useState<number | null>(null)
 
-  const handleRoleChange = (id: number, role: 'USER' | 'PREMIUM' | 'ADMIN') => {
+  const handleRoleChange = (id: number, role: Role) => {
     updateRoleMutation.mutate({ id, role })
   }
 
@@ -55,26 +57,26 @@ export const Admin_Page = () => {
       <div className="space-y-6">
         <div className="flex items-center gap-3">
           <Shield className="h-6 w-6 text-primary" />
-          <h1 className="text-2xl font-bold text-foreground">User Management</h1>
+          <h1 className="text-2xl font-bold text-foreground">{t('admin.title')}</h1>
         </div>
 
         <Card>
           <CardHeader>
-            <CardTitle>All Users</CardTitle>
-            <CardDescription>Manage user roles and accounts</CardDescription>
+            <CardTitle>{t('admin.allUsers')}</CardTitle>
+            <CardDescription>{t('admin.description')}</CardDescription>
           </CardHeader>
           <CardContent>
             {isLoading ? (
-              <p className="text-sm text-muted-foreground">Loading users...</p>
+              <p className="text-sm text-muted-foreground">{t('admin.loading')}</p>
             ) : (
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Username</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Role</TableHead>
-                    <TableHead>Member since</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
+                    <TableHead>{t('auth.username')}</TableHead>
+                    <TableHead>{t('auth.email')}</TableHead>
+                    <TableHead>{t('profile.role')}</TableHead>
+                    <TableHead>{t('profile.memberSince')}</TableHead>
+                    <TableHead className="text-right">{t('common.actions')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -84,20 +86,22 @@ export const Admin_Page = () => {
                       <TableCell className="text-muted-foreground">{user.email}</TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
-                          <Badge variant={roleBadgeVariant(user.role)}>{user.role}</Badge>
+                          <Badge variant={roleBadgeVariant(user.role)}>
+                            {isRole(user.role) ? t(`roles.${user.role}` as const) : user.role}
+                          </Badge>
                           <Select
                             value={user.role}
-                            onValueChange={(val) =>
-                              handleRoleChange(user.id, val as 'USER' | 'PREMIUM' | 'ADMIN')
-                            }
+                            onValueChange={(val) => {
+                              if (isRole(val)) handleRoleChange(user.id, val)
+                            }}
                           >
                             <SelectTrigger className="h-7 w-28 text-xs">
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
-                              {ROLE_OPTIONS.map((r) => (
+                              {ROLES.map((r) => (
                                 <SelectItem key={r} value={r} className="text-xs">
-                                  {r}
+                                  {t(`roles.${r}` as const)}
                                 </SelectItem>
                               ))}
                             </SelectContent>
@@ -113,6 +117,7 @@ export const Admin_Page = () => {
                           size="icon"
                           className="text-destructive hover:text-destructive"
                           onClick={() => setDeleteId(user.id)}
+                          aria-label={t('admin.deleteUserAria')}
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
@@ -129,21 +134,21 @@ export const Admin_Page = () => {
       <Dialog open={deleteId !== null} onOpenChange={(open) => !open && setDeleteId(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Delete user</DialogTitle>
+            <DialogTitle>{t('admin.deleteUserTitle')}</DialogTitle>
             <DialogDescription>
-              This will permanently delete the user and all their data. This action cannot be undone.
+              {t('admin.deleteUserDescription')}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDeleteId(null)}>
-              Cancel
+              {t('common.cancel')}
             </Button>
             <Button
               variant="destructive"
               onClick={handleDeleteConfirm}
               disabled={deleteUserMutation.isPending}
             >
-              Delete
+              {t('common.delete')}
             </Button>
           </DialogFooter>
         </DialogContent>

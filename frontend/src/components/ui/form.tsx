@@ -5,6 +5,7 @@ import { createContext, useContext, useId } from 'react'
 
 import { cn } from '@/lib/utils'
 import { Label } from '@/components/ui/label'
+import { useTranslation } from '@/i18n/useTranslation'
 
 export const Form = FormProvider
 
@@ -93,7 +94,9 @@ export const FormDescription = ({ className, ...props }: React.ComponentProps<'p
 
 export const FormMessage = ({ className, children, ...props }: React.ComponentProps<'p'>) => {
   const { error, formMessageId } = useFormField()
-  const body = error ? String(error.message) : children
+  const { translateMessage } = useTranslation()
+  // Zod schemas store translation keys as messages
+  const body = error ? translateMessage(String(error.message)) : children
   if (!body) return null
   return (
     <p id={formMessageId} className={cn('text-sm font-medium text-destructive', className)} {...props}>

@@ -13,6 +13,7 @@ import { Goals_Form } from '@/features/goals/components/Goals_Form'
 import type { Goal } from '@/features/goals/consts/goals_schemas'
 import { useGoals_deleteMutation } from '@/features/goals/hooks/useGoals_deleteMutation'
 import { useGoals_goalsQuery } from '@/features/goals/hooks/useGoals_goalsQuery'
+import { useTranslation } from '@/i18n/useTranslation'
 import { AppLayout } from '@/layouts/AppLayout'
 import { formatCurrency, formatDate } from '@/utils/formatters'
 
@@ -24,6 +25,7 @@ export const Goals_Page = () => {
 
   const { data: goals } = useGoals_goalsQuery()
   const deleteMutation = useGoals_deleteMutation()
+  const { t } = useTranslation()
 
   const handleNew = () => {
     setEditing(null)
@@ -55,15 +57,15 @@ export const Goals_Page = () => {
     <AppLayout>
       <div className="space-y-6">
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-foreground">Goals</h1>
-          <Button onClick={handleNew}>New Goal</Button>
+          <h1 className="text-2xl font-bold text-foreground">{t('goals.title')}</h1>
+          <Button onClick={handleNew}>{t('goals.new')}</Button>
         </div>
 
         {goals == null || goals.length === 0 ? (
           <EmptyState
             icon={Target}
-            title="No goals yet"
-            description="Create your first savings goal to start tracking your progress."
+            title={t('goals.emptyTitle')}
+            description={t('goals.emptyDescription')}
           />
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -77,7 +79,7 @@ export const Goals_Page = () => {
                         variant="ghost"
                         size="icon"
                         onClick={() => handleEdit(goal)}
-                        aria-label={`Edit ${goal.name}`}
+                        aria-label={t('common.editNamed', { name: goal.name })}
                       >
                         <Pencil className="h-4 w-4" />
                       </Button>
@@ -85,7 +87,7 @@ export const Goals_Page = () => {
                         variant="ghost"
                         size="icon"
                         onClick={() => setDeletingId(goal.id)}
-                        aria-label={`Delete ${goal.name}`}
+                        aria-label={t('common.deleteNamed', { name: goal.name })}
                       >
                         <Trash2 className="h-4 w-4 text-destructive" />
                       </Button>
@@ -102,7 +104,7 @@ export const Goals_Page = () => {
                   </div>
                   {goal.deadline != null && (
                     <p className="text-xs text-muted-foreground">
-                      Deadline: {formatDate(goal.deadline)}
+                      {t('goals.deadline', { date: formatDate(goal.deadline) })}
                     </p>
                   )}
                   <Button
@@ -112,7 +114,7 @@ export const Goals_Page = () => {
                     onClick={() => setAddFundsGoalId(goal.id)}
                   >
                     <WalletMinimal className="h-4 w-4" />
-                    Add Funds
+                    {t('goals.addFunds')}
                   </Button>
                 </CardContent>
               </Card>
@@ -123,7 +125,7 @@ export const Goals_Page = () => {
         <Dialog open={formOpen} onOpenChange={setFormOpen}>
           <DialogContent className="max-w-md">
             <DialogHeader>
-              <DialogTitle>{editing != null ? 'Edit Goal' : 'New Goal'}</DialogTitle>
+              <DialogTitle>{editing != null ? t('goals.edit') : t('goals.new')}</DialogTitle>
             </DialogHeader>
             <Goals_Form
               key={editing?.id ?? 'new'}
@@ -136,7 +138,7 @@ export const Goals_Page = () => {
         <Dialog open={addFundsGoalId != null} onOpenChange={(isOpen) => { if (!isOpen) setAddFundsGoalId(null) }}>
           <DialogContent className="max-w-md">
             <DialogHeader>
-              <DialogTitle>Add Funds</DialogTitle>
+              <DialogTitle>{t('goals.addFunds')}</DialogTitle>
             </DialogHeader>
             {addFundsGoalId != null && (
               <Goals_AddFundsForm
@@ -155,8 +157,8 @@ export const Goals_Page = () => {
           }}
           onConfirm={handleDeleteConfirm}
           isPending={deleteMutation.isPending}
-          title="Delete goal"
-          description="This action cannot be undone. The goal will be permanently removed."
+          title={t('goals.deleteTitle')}
+          description={t('goals.deleteDescription')}
         />
       </div>
     </AppLayout>

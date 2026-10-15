@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input'
 import { DailyBudgetFormSchema } from '@/features/dailyBudget/consts/dailyBudget_schemas'
 import type { DailyBudgetFormValues } from '@/features/dailyBudget/consts/dailyBudget_schemas'
 import { useDailyBudget_setMutation } from '@/features/dailyBudget/hooks/useDailyBudget_setMutation'
+import { useTranslation } from '@/i18n/useTranslation'
 
 const TODAY = new Date().toISOString().split('T')[0]
 
@@ -17,6 +18,7 @@ type Props = {
 
 export const DailyBudget_Form = ({ onSuccess }: Props) => {
   const setMutation = useDailyBudget_setMutation()
+  const { t } = useTranslation()
 
   const form = useForm<DailyBudgetFormValues>({
     resolver: zodResolver(DailyBudgetFormSchema),
@@ -38,7 +40,7 @@ export const DailyBudget_Form = ({ onSuccess }: Props) => {
           name="dailyLimit"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Daily Limit</FormLabel>
+              <FormLabel>{t('dailyBudget.dailyLimit')}</FormLabel>
               <FormControl>
                 <Input
                   type="number"
@@ -57,7 +59,7 @@ export const DailyBudget_Form = ({ onSuccess }: Props) => {
           name="date"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Date</FormLabel>
+              <FormLabel>{t('common.date')}</FormLabel>
               <FormControl>
                 <Input type="date" {...field} />
               </FormControl>
@@ -67,7 +69,7 @@ export const DailyBudget_Form = ({ onSuccess }: Props) => {
         />
         <Button type="submit" disabled={setMutation.isPending} className="w-full">
           {setMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          Set Daily Budget
+          {t('dailyBudget.setTitle')}
         </Button>
       </form>
     </Form>

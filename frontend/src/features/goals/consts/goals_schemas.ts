@@ -1,5 +1,7 @@
 import { z } from 'zod'
 
+import { i18nKey } from '@/i18n/translate'
+
 export const GoalSchema = z.object({
   id: z.number(),
   name: z.string(),
@@ -10,9 +12,9 @@ export const GoalSchema = z.object({
 })
 
 export const GoalFormSchema = z.object({
-  name: z.string().min(1, 'Name is required'),
-  targetAmount: z.number().positive('Target amount must be positive'),
-  currentAmount: z.number().min(0, 'Current amount must be 0 or more').optional(),
+  name: z.string().min(1, i18nKey('validation.nameRequired')),
+  targetAmount: z.number().positive(i18nKey('validation.targetPositive')),
+  currentAmount: z.number().min(0, i18nKey('validation.currentAmountMin')).optional(),
   deadline: z.string().optional(),
 })
 

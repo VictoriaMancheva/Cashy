@@ -20,6 +20,10 @@ public class Constant {
     public static final String RECEIPTS_PATH = "/api/receipts";
     public static final String ADMIN_PATH = "/api/admin";
     public static final String PREMIUM_PATH = "/api/premium";
+    public static final String PAYMENTS_PATH = "/api/payments";
+    public static final String CHECKOUT_SESSION_PATH = "/checkout-session";
+    public static final String CONFIRM_PATH = "/confirm";
+    public static final String WEBHOOK_PATH = "/webhook";
     public static final String SCAN_PATH = "/scan";
     public static final String ROLE_PATH = "/{id}/role";
 
@@ -39,6 +43,7 @@ public class Constant {
     public static final String ME_PATH = "/me";
     public static final String USERNAME_PATH = "/me/username";
     public static final String PASSWORD_PATH = "/me/password";
+    public static final String TODAY_PATH = "/today";
 
 
 }

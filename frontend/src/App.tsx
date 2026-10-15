@@ -13,6 +13,8 @@ import { Goals_Page } from '@/features/goals/Goals_Page'
 import { Login_Page } from '@/features/auth/Login_Page'
 import { Notifications_Page } from '@/features/notifications/Notifications_Page'
 import { PaymentMethods_Page } from '@/features/paymentMethods/PaymentMethods_Page'
+import { Premium_Page } from '@/features/premium/Premium_Page'
+import { Premium_SuccessPage } from '@/features/premium/Premium_SuccessPage'
 import { Profile_Page } from '@/features/profile/Profile_Page'
 import { RecurringTransactions_Page } from '@/features/recurringTransactions/RecurringTransactions_Page'
 import { Register_Page } from '@/features/auth/Register_Page'
@@ -34,6 +36,8 @@ export const App = () => (
     <Route path={ROUTES.notifications} element={<ProtectedRoute><Notifications_Page /></ProtectedRoute>} />
     <Route path={ROUTES.profile} element={<ProtectedRoute><Profile_Page /></ProtectedRoute>} />
     <Route path={ROUTES.analytics} element={<ProtectedRoute><Analytics_Page /></ProtectedRoute>} />
+    <Route path={ROUTES.premium} element={<ProtectedRoute><Premium_Page /></ProtectedRoute>} />
+    <Route path={ROUTES.premiumSuccess} element={<ProtectedRoute><Premium_SuccessPage /></ProtectedRoute>} />
     <Route path={ROUTES.admin} element={<AdminRoute><Admin_Page /></AdminRoute>} />
     <Route path="*" element={<Navigate to={ROUTES.login} replace />} />
   </Routes>

@@ -1,5 +1,7 @@
 import { z } from 'zod'
 
+import { i18nKey } from '@/i18n/translate'
+
 export const TRANSACTION_TYPES = ['INCOME', 'EXPENSE'] as const
 
 export const TransactionSchema = z.object({
@@ -16,7 +18,7 @@ export const TransactionSchema = z.object({
 })
 
 export const TransactionFormSchema = z.object({
-  amount: z.number().positive('Amount must be positive'),
+  amount: z.number().positive(i18nKey('validation.amountPositive')),
   type: z.enum(TRANSACTION_TYPES),
   description: z.string().optional(),
   date: z.string().optional(),
@@ -36,3 +38,14 @@ export type Transaction = z.infer<typeof TransactionSchema>
 export type TransactionFormValues = z.infer<typeof TransactionFormSchema>
 export type TransactionType = (typeof TRANSACTION_TYPES)[number]
 export type ReceiptScanResult = z.infer<typeof ReceiptScanResultSchema>
+
+export type TransactionFilters = {
+  search: string
+  type: '' | 'INCOME' | 'EXPENSE'
+  from: string
+  to: string
+  categoryId: number | null
+  paymentMethodId: number | null
+  minAmount: string
+  maxAmount: string
+}

@@ -13,6 +13,7 @@ import { useRecurringTransactions_applyMutation } from '@/features/recurringTran
 import { useRecurringTransactions_deleteMutation } from '@/features/recurringTransactions/hooks/useRecurringTransactions_deleteMutation'
 import { useRecurringTransactions_recurringTransactionsQuery } from '@/features/recurringTransactions/hooks/useRecurringTransactions_recurringTransactionsQuery'
 import { RecurringTransactions_Form } from '@/features/recurringTransactions/components/RecurringTransactions_Form'
+import { useTranslation } from '@/i18n/useTranslation'
 import { AppLayout } from '@/layouts/AppLayout'
 import { formatCurrency, formatDate } from '@/utils/formatters'
 
@@ -24,6 +25,7 @@ export const RecurringTransactions_Page = () => {
   const { data: recurringTransactions } = useRecurringTransactions_recurringTransactionsQuery()
   const deleteMutation = useRecurringTransactions_deleteMutation()
   const applyMutation = useRecurringTransactions_applyMutation()
+  const { t } = useTranslation()
 
   const handleNew = () => {
     setEditing(null)
@@ -49,27 +51,27 @@ export const RecurringTransactions_Page = () => {
     <AppLayout>
       <div className="space-y-6">
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-foreground">Recurring Transactions</h1>
-          <Button onClick={handleNew}>New Recurring</Button>
+          <h1 className="text-2xl font-bold text-foreground">{t('recurring.title')}</h1>
+          <Button onClick={handleNew}>{t('recurring.new')}</Button>
         </div>
 
         {recurringTransactions == null || recurringTransactions.length === 0 ? (
           <EmptyState
             icon={RefreshCw}
-            title="No recurring transactions"
-            description="Set up recurring transactions to automate your regular income and expenses."
+            title={t('recurring.emptyTitle')}
+            description={t('recurring.emptyDescription')}
           />
         ) : (
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Description</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead>Amount</TableHead>
-                <TableHead>Frequency</TableHead>
-                <TableHead>Next Date</TableHead>
-                <TableHead>Category</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead>{t('common.description')}</TableHead>
+                <TableHead>{t('common.type')}</TableHead>
+                <TableHead>{t('common.amount')}</TableHead>
+                <TableHead>{t('recurring.frequency')}</TableHead>
+                <TableHead>{t('recurring.nextDate')}</TableHead>
+                <TableHead>{t('common.category')}</TableHead>
+                <TableHead className="text-right">{t('common.actions')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -77,10 +79,10 @@ export const RecurringTransactions_Page = () => {
                 <TableRow key={rt.id}>
                   <TableCell>{rt.description ?? '—'}</TableCell>
                   <TableCell>
-                    <Badge variant={rt.type === 'INCOME' ? 'income' : 'expense'}>{rt.type}</Badge>
+                    <Badge variant={rt.type === 'INCOME' ? 'income' : 'expense'}>{t(`transactionType.${rt.type}` as const)}</Badge>
                   </TableCell>
                   <TableCell>{formatCurrency(rt.amount)}</TableCell>
-                  <TableCell className="capitalize">{rt.frequency.toLowerCase()}</TableCell>
+                  <TableCell>{t(`frequency.${rt.frequency}` as const)}</TableCell>
                   <TableCell>{formatDate(rt.nextDate)}</TableCell>
                   <TableCell>{rt.categoryName ?? '—'}</TableCell>
                   <TableCell className="text-right">
@@ -90,7 +92,7 @@ export const RecurringTransactions_Page = () => {
                         size="icon"
                         onClick={() => applyMutation.mutate(rt.id)}
                         disabled={applyMutation.isPending}
-                        aria-label="Apply transaction"
+                        aria-label={t('recurring.applyAria')}
                       >
                         <Play className="h-4 w-4 text-primary" />
                       </Button>
@@ -98,7 +100,7 @@ export const RecurringTransactions_Page = () => {
                         variant="ghost"
                         size="icon"
                         onClick={() => handleEdit(rt)}
-                        aria-label="Edit recurring transaction"
+                        aria-label={t('recurring.editAria')}
                       >
                         <Pencil className="h-4 w-4" />
                       </Button>
@@ -106,7 +108,7 @@ export const RecurringTransactions_Page = () => {
                         variant="ghost"
                         size="icon"
                         onClick={() => setDeletingId(rt.id)}
-                        aria-label="Delete recurring transaction"
+                        aria-label={t('recurring.deleteAria')}
                       >
                         <Trash2 className="h-4 w-4 text-destructive" />
                       </Button>
@@ -121,7 +123,7 @@ export const RecurringTransactions_Page = () => {
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogContent className="max-w-md">
             <DialogHeader>
-              <DialogTitle>{editing != null ? 'Edit Recurring' : 'New Recurring Transaction'}</DialogTitle>
+              <DialogTitle>{editing != null ? t('recurring.edit') : t('recurring.newTitle')}</DialogTitle>
             </DialogHeader>
             <RecurringTransactions_Form
               key={editing?.id ?? 'new'}
@@ -138,8 +140,8 @@ export const RecurringTransactions_Page = () => {
           }}
           onConfirm={handleDeleteConfirm}
           isPending={deleteMutation.isPending}
-          title="Delete recurring transaction"
-          description="This action cannot be undone. The recurring transaction will be permanently removed."
+          title={t('recurring.deleteTitle')}
+          description={t('recurring.deleteDescription')}
         />
       </div>
     </AppLayout>

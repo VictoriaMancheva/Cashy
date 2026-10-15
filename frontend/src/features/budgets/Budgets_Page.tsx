@@ -11,9 +11,9 @@ import { Budgets_Form } from '@/features/budgets/components/Budgets_Form'
 import type { Budget } from '@/features/budgets/consts/budgets_schemas'
 import { useBudgets_budgetsQuery } from '@/features/budgets/hooks/useBudgets_budgetsQuery'
 import { useBudgets_deleteMutation } from '@/features/budgets/hooks/useBudgets_deleteMutation'
+import { useTranslation } from '@/i18n/useTranslation'
 import { AppLayout } from '@/layouts/AppLayout'
-import { formatCurrency } from '@/utils/formatters'
-import { MONTHS } from '@/utils/formatters'
+import { formatCurrency, formatMonth } from '@/utils/formatters'
 
 export const Budgets_Page = () => {
   const [open, setOpen] = useState(false)
@@ -22,6 +22,7 @@ export const Budgets_Page = () => {
 
   const { data: budgets } = useBudgets_budgetsQuery()
   const deleteMutation = useBudgets_deleteMutation()
+  const { t } = useTranslation()
 
   const handleNew = () => {
     setEditing(null)
@@ -43,21 +44,19 @@ export const Budgets_Page = () => {
     deleteMutation.mutate(deletingId, { onSuccess: () => setDeletingId(null) })
   }
 
-  const monthLabel = (month: number) => MONTHS.find((m) => m.value === month)?.label ?? String(month)
-
   return (
     <AppLayout>
       <div className="space-y-6">
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-foreground">Budgets</h1>
-          <Button onClick={handleNew}>New Budget</Button>
+          <h1 className="text-2xl font-bold text-foreground">{t('budgets.title')}</h1>
+          <Button onClick={handleNew}>{t('budgets.new')}</Button>
         </div>
 
         {budgets == null || budgets.length === 0 ? (
           <EmptyState
             icon={PieChart}
-            title="No budgets yet"
-            description="Create a budget to track your monthly spending."
+            title={t('budgets.emptyTitle')}
+            description={t('budgets.emptyDescription')}
           />
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -66,14 +65,14 @@ export const Budgets_Page = () => {
                 <CardHeader className="pb-2">
                   <div className="flex items-start justify-between">
                     <CardTitle className="text-base">
-                      {monthLabel(budget.month)} {budget.year}
+                      {formatMonth(budget.month)} {budget.year}
                     </CardTitle>
                     <div className="flex gap-1">
                       <Button
                         variant="ghost"
                         size="icon"
                         onClick={() => handleEdit(budget)}
-                        aria-label="Edit budget"
+                        aria-label={t('budgets.editAria')}
                       >
                         <Pencil className="h-4 w-4" />
                       </Button>
@@ -81,7 +80,7 @@ export const Budgets_Page = () => {
                         variant="ghost"
                         size="icon"
                         onClick={() => setDeletingId(budget.id)}
-                        aria-label="Delete budget"
+                        aria-label={t('budgets.deleteAria')}
                       >
                         <Trash2 className="h-4 w-4 text-destructive" />
                       </Button>
@@ -125,7 +124,7 @@ export const Budgets_Page = () => {
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>{editing != null ? 'Edit Budget' : 'New Budget'}</DialogTitle>
+              <DialogTitle>{editing != null ? t('budgets.edit') : t('budgets.new')}</DialogTitle>
             </DialogHeader>
             <Budgets_Form
               key={editing?.id ?? 'new'}
@@ -142,8 +141,8 @@ export const Budgets_Page = () => {
           }}
           onConfirm={handleDeleteConfirm}
           isPending={deleteMutation.isPending}
-          title="Delete budget"
-          description="This action cannot be undone. The budget will be permanently removed."
+          title={t('budgets.deleteTitle')}
+          description={t('budgets.deleteDescription')}
         />
       </div>
     </AppLayout>

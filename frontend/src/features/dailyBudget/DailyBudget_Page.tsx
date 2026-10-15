@@ -8,13 +8,16 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { DailyBudget_Form } from '@/features/dailyBudget/components/DailyBudget_Form'
+import { DailyBudget_TodayCard } from '@/features/dailyBudget/components/DailyBudget_TodayCard'
 import { useDailyBudget_dailyBudgetsQuery } from '@/features/dailyBudget/hooks/useDailyBudget_dailyBudgetsQuery'
 import { useDailyBudget_deleteMutation } from '@/features/dailyBudget/hooks/useDailyBudget_deleteMutation'
+import { useTranslation } from '@/i18n/useTranslation'
 import { AppLayout } from '@/layouts/AppLayout'
 import { formatCurrency, formatDate } from '@/utils/formatters'
 
 export const DailyBudget_Page = () => {
   const [deletingId, setDeletingId] = useState<number | null>(null)
+  const { t } = useTranslation()
 
   const { data: dailyBudgets } = useDailyBudget_dailyBudgetsQuery()
   const deleteMutation = useDailyBudget_deleteMutation()
@@ -29,12 +32,14 @@ export const DailyBudget_Page = () => {
   return (
     <AppLayout>
       <div className="space-y-6">
-        <h1 className="text-2xl font-bold text-foreground">Daily Budget</h1>
+        <h1 className="text-2xl font-bold text-foreground">{t('dailyBudget.title')}</h1>
+
+        <DailyBudget_TodayCard />
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <Card className="lg:col-span-1">
             <CardHeader>
-              <CardTitle>Set Daily Budget</CardTitle>
+              <CardTitle>{t('dailyBudget.setTitle')}</CardTitle>
             </CardHeader>
             <CardContent>
               <DailyBudget_Form onSuccess={() => undefined} />
@@ -43,22 +48,22 @@ export const DailyBudget_Page = () => {
 
           <Card className="lg:col-span-2">
             <CardHeader>
-              <CardTitle>Daily Budgets</CardTitle>
+              <CardTitle>{t('dailyBudget.listTitle')}</CardTitle>
             </CardHeader>
             <CardContent className="p-0">
               {dailyBudgets == null || dailyBudgets.length === 0 ? (
                 <EmptyState
                   icon={CalendarDays}
-                  title="No daily budgets yet"
-                  description="Set a daily budget above to start tracking your spending limits."
+                  title={t('dailyBudget.emptyTitle')}
+                  description={t('dailyBudget.emptyDescription')}
                 />
               ) : (
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Date</TableHead>
-                      <TableHead>Limit</TableHead>
-                      <TableHead className="w-16 text-right">Delete</TableHead>
+                      <TableHead>{t('common.date')}</TableHead>
+                      <TableHead>{t('dailyBudget.limit')}</TableHead>
+                      <TableHead className="w-16 text-right">{t('common.delete')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -71,7 +76,7 @@ export const DailyBudget_Page = () => {
                             variant="ghost"
                             size="icon"
                             onClick={() => setDeletingId(budget.id)}
-                            aria-label={`Delete budget for ${formatDate(budget.date)}`}
+                            aria-label={t('dailyBudget.deleteAria', { date: formatDate(budget.date) })}
                           >
                             <Trash2 className="h-4 w-4 text-destructive" />
                           </Button>
@@ -92,8 +97,8 @@ export const DailyBudget_Page = () => {
           }}
           onConfirm={handleDeleteConfirm}
           isPending={deleteMutation.isPending}
-          title="Delete daily budget"
-          description="This action cannot be undone. The daily budget will be permanently removed."
+          title={t('dailyBudget.deleteTitle')}
+          description={t('dailyBudget.deleteDescription')}
         />
       </div>
     </AppLayout>

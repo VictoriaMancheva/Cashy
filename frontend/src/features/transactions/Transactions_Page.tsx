@@ -9,19 +9,35 @@ import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Transactions_FiltersBar } from '@/features/transactions/components/Transactions_FiltersBar'
 import { Transactions_Form } from '@/features/transactions/components/Transactions_Form'
-import type { Transaction } from '@/features/transactions/consts/transactions_schemas'
+import { DEFAULT_TRANSACTION_FILTERS, TRANSACTION_FILTER_DEBOUNCE_MS } from '@/features/transactions/consts/transactions_constants'
+import type { Transaction, TransactionFilters } from '@/features/transactions/consts/transactions_schemas'
 import { useTransactions_deleteMutation } from '@/features/transactions/hooks/useTransactions_deleteMutation'
 import { useTransactions_transactionsQuery } from '@/features/transactions/hooks/useTransactions_transactionsQuery'
+import { useDebounce } from '@/hooks/useDebounce'
+import { useTranslation } from '@/i18n/useTranslation'
 import { AppLayout } from '@/layouts/AppLayout'
 import { formatCurrency, formatDate } from '@/utils/formatters'
 
+type ActiveTab = '' | 'INCOME' | 'EXPENSE'
+
+const TAB_ALL = ''
+const TAB_INCOME = 'INCOME'
+const TAB_EXPENSE = 'EXPENSE'
+
 export const Transactions_Page = () => {
+  const { t } = useTranslation()
   const [open, setOpen] = useState(false)
   const [editing, setEditing] = useState<Transaction | null>(null)
   const [deletingId, setDeletingId] = useState<number | null>(null)
+  const [filters, setFilters] = useState<TransactionFilters>(DEFAULT_TRANSACTION_FILTERS)
+  const [searchInput, setSearchInput] = useState('')
+  const debouncedSearch = useDebounce(searchInput, TRANSACTION_FILTER_DEBOUNCE_MS)
 
-  const { data: transactions } = useTransactions_transactionsQuery()
+  const effectiveFilters: TransactionFilters = { ...filters, search: debouncedSearch }
+
+  const { data: transactions } = useTransactions_transactionsQuery(effectiveFilters)
   const deleteMutation = useTransactions_deleteMutation()
 
   const handleNew = () => {
@@ -44,13 +60,24 @@ export const Transactions_Page = () => {
     deleteMutation.mutate(deletingId, { onSuccess: () => setDeletingId(null) })
   }
 
+  const handleTabChange = (value: string) => {
+    setFilters((prev) => ({ ...prev, type: value as ActiveTab }))
+  }
+
+  const handleFiltersChange = (next: TransactionFilters) => {
+    setFilters(next)
+    if (next.search !== filters.search) {
+      setSearchInput(next.search)
+    }
+  }
+
   const renderTable = (rows: Transaction[] | undefined) => {
     if (rows == null || rows.length === 0) {
       return (
         <EmptyState
           icon={ArrowLeftRight}
-          title="No transactions"
-          description="Add your first transaction to start tracking."
+          title={t('transactions.emptyTitle')}
+          description={t('transactions.emptyDescription')}
         />
       )
     }
@@ -59,13 +86,13 @@ export const Transactions_Page = () => {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Date</TableHead>
-            <TableHead>Type</TableHead>
-            <TableHead>Amount</TableHead>
-            <TableHead>Description</TableHead>
-            <TableHead>Category</TableHead>
-            <TableHead>Payment Method</TableHead>
-            <TableHead className="w-24 text-right">Actions</TableHead>
+            <TableHead>{t('common.date')}</TableHead>
+            <TableHead>{t('common.type')}</TableHead>
+            <TableHead>{t('common.amount')}</TableHead>
+            <TableHead>{t('common.description')}</TableHead>
+            <TableHead>{t('common.category')}</TableHead>
+            <TableHead>{t('common.paymentMethod')}</TableHead>
+            <TableHead className="w-24 text-right">{t('common.actions')}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -73,7 +100,7 @@ export const Transactions_Page = () => {
             <TableRow key={tx.id}>
               <TableCell>{formatDate(tx.date)}</TableCell>
               <TableCell>
-                <Badge variant={tx.type === 'INCOME' ? 'income' : 'expense'}>{tx.type}</Badge>
+                <Badge variant={tx.type === 'INCOME' ? 'income' : 'expense'}>{t(`transactionType.${tx.type}` as const)}</Badge>
               </TableCell>
               <TableCell>{formatCurrency(tx.amount)}</TableCell>
               <TableCell>{tx.description ?? '—'}</TableCell>
@@ -85,7 +112,7 @@ export const Transactions_Page = () => {
                     variant="ghost"
                     size="icon"
                     onClick={() => handleEdit(tx)}
-                    aria-label={`Edit transaction`}
+                    aria-label={t('transactions.editAria')}
                   >
                     <Pencil className="h-4 w-4" />
                   </Button>
@@ -93,7 +120,7 @@ export const Transactions_Page = () => {
                     variant="ghost"
                     size="icon"
                     onClick={() => setDeletingId(tx.id)}
-                    aria-label={`Delete transaction`}
+                    aria-label={t('transactions.deleteAria')}
                   >
                     <Trash2 className="h-4 w-4 text-destructive" />
                   </Button>
@@ -106,38 +133,36 @@ export const Transactions_Page = () => {
     )
   }
 
-  const income = transactions?.filter((t) => t.type === 'INCOME')
-  const expenses = transactions?.filter((t) => t.type === 'EXPENSE')
-
   return (
     <AppLayout>
       <div className="space-y-6">
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-foreground">Transactions</h1>
-          <Button onClick={handleNew}>New Transaction</Button>
+          <h1 className="text-2xl font-bold text-foreground">{t('transactions.title')}</h1>
+          <Button onClick={handleNew}>{t('transactions.new')}</Button>
         </div>
 
-        <Tabs defaultValue="all">
+        <Transactions_FiltersBar
+          filters={effectiveFilters}
+          onChange={handleFiltersChange}
+          searchInput={searchInput}
+          onSearchInput={setSearchInput}
+        />
+
+        <Tabs value={filters.type} onValueChange={handleTabChange}>
           <TabsList>
-            <TabsTrigger value="all">All</TabsTrigger>
-            <TabsTrigger value="income">Income</TabsTrigger>
-            <TabsTrigger value="expenses">Expenses</TabsTrigger>
+            <TabsTrigger value={TAB_ALL}>{t('transactions.all')}</TabsTrigger>
+            <TabsTrigger value={TAB_INCOME}>{t('transactions.incomeTab')}</TabsTrigger>
+            <TabsTrigger value={TAB_EXPENSE}>{t('transactions.expensesTab')}</TabsTrigger>
           </TabsList>
-          <TabsContent value="all" className="mt-4">
-            {renderTable(transactions)}
-          </TabsContent>
-          <TabsContent value="income" className="mt-4">
-            {renderTable(income)}
-          </TabsContent>
-          <TabsContent value="expenses" className="mt-4">
-            {renderTable(expenses)}
-          </TabsContent>
+          <TabsContent value={TAB_ALL} className="mt-4">{renderTable(transactions)}</TabsContent>
+          <TabsContent value={TAB_INCOME} className="mt-4">{renderTable(transactions)}</TabsContent>
+          <TabsContent value={TAB_EXPENSE} className="mt-4">{renderTable(transactions)}</TabsContent>
         </Tabs>
 
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogContent className="max-w-md">
             <DialogHeader>
-              <DialogTitle>{editing != null ? 'Edit Transaction' : 'New Transaction'}</DialogTitle>
+              <DialogTitle>{editing != null ? t('transactions.edit') : t('transactions.new')}</DialogTitle>
             </DialogHeader>
             <Transactions_Form
               key={editing?.id ?? 'new'}
@@ -154,8 +179,8 @@ export const Transactions_Page = () => {
           }}
           onConfirm={handleDeleteConfirm}
           isPending={deleteMutation.isPending}
-          title="Delete transaction"
-          description="This action cannot be undone. The transaction will be permanently removed."
+          title={t('transactions.deleteTitle')}
+          description={t('transactions.deleteDescription')}
         />
       </div>
     </AppLayout>

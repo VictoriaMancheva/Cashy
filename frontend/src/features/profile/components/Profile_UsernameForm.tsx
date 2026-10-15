@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input'
 import type { UsernameFormValues } from '@/features/profile/consts/profile_schemas'
 import { UsernameFormSchema } from '@/features/profile/consts/profile_schemas'
 import { useProfile_updateUsernameMutation } from '@/features/profile/hooks/useProfile_updateUsernameMutation'
+import { useTranslation } from '@/i18n/useTranslation'
 
 type Props = {
   currentUsername: string
@@ -15,6 +16,7 @@ type Props = {
 
 export const Profile_UsernameForm = ({ currentUsername }: Props) => {
   const updateMutation = useProfile_updateUsernameMutation()
+  const { t } = useTranslation()
 
   const form = useForm<UsernameFormValues>({
     resolver: zodResolver(UsernameFormSchema),
@@ -33,9 +35,9 @@ export const Profile_UsernameForm = ({ currentUsername }: Props) => {
           name="username"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Username</FormLabel>
+              <FormLabel>{t('auth.username')}</FormLabel>
               <FormControl>
-                <Input placeholder="Enter username" {...field} />
+                <Input placeholder={t('profile.usernamePlaceholder')} {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -43,7 +45,7 @@ export const Profile_UsernameForm = ({ currentUsername }: Props) => {
         />
         <Button type="submit" disabled={updateMutation.isPending}>
           {updateMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          Update Username
+          {t('profile.updateUsername')}
         </Button>
       </form>
     </Form>

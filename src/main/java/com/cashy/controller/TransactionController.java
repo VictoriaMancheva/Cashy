@@ -1,5 +1,6 @@
 package com.cashy.controller;
 
+import com.cashy.dto.TransactionFilterParams;
 import com.cashy.dto.TransactionRequest;
 import com.cashy.dto.TransactionResponse;
 import com.cashy.entity.Transaction;
@@ -28,18 +29,18 @@ public class TransactionController {
     private final TransactionService transactionService;
 
     @GetMapping
-    @Operation(summary = "List transactions", description = "Return all transactions for the current user. Optionally filter by type, or by date range (from + to).")
+    @Operation(summary = "List transactions", description = "Return transactions for the current user. All parameters are optional and combinable.")
     public ResponseEntity<List<TransactionResponse>> getTransactions(
             @RequestParam(required = false) Transaction.TransactionType type,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to) {
-        if (type != null) {
-            return ResponseEntity.ok(transactionService.getTransactionsByType(type));
-        }
-        if (from != null && to != null) {
-            return ResponseEntity.ok(transactionService.getTransactionsByDateRange(from, to));
-        }
-        return ResponseEntity.ok(transactionService.getTransactions());
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to,
+            @RequestParam(required = false) Long categoryId,
+            @RequestParam(required = false) Long paymentMethodId,
+            @RequestParam(required = false) Double minAmount,
+            @RequestParam(required = false) Double maxAmount,
+            @RequestParam(required = false) String search) {
+        TransactionFilterParams params = new TransactionFilterParams(type, from, to, categoryId, paymentMethodId, minAmount, maxAmount, search);
+        return ResponseEntity.ok(transactionService.getFilteredTransactions(params));
     }
 
     @PostMapping

@@ -11,6 +11,7 @@ import type { Goal, GoalFormValues } from '@/features/goals/consts/goals_schemas
 import { GoalFormSchema } from '@/features/goals/consts/goals_schemas'
 import { useGoals_createMutation } from '@/features/goals/hooks/useGoals_createMutation'
 import { useGoals_updateMutation } from '@/features/goals/hooks/useGoals_updateMutation'
+import { useTranslation } from '@/i18n/useTranslation'
 
 type Props = {
   defaultValues?: Goal | null
@@ -22,6 +23,7 @@ export const Goals_Form = ({ defaultValues, onSuccess }: Props) => {
 
   const createMutation = useGoals_createMutation()
   const updateMutation = useGoals_updateMutation()
+  const { t } = useTranslation()
 
   const isPending = createMutation.isPending || updateMutation.isPending
 
@@ -63,9 +65,9 @@ export const Goals_Form = ({ defaultValues, onSuccess }: Props) => {
           name="name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Name</FormLabel>
+              <FormLabel>{t('common.name')}</FormLabel>
               <FormControl>
-                <Input placeholder="Goal name" {...field} />
+                <Input placeholder={t('goals.namePlaceholder')} {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -76,7 +78,7 @@ export const Goals_Form = ({ defaultValues, onSuccess }: Props) => {
           name="targetAmount"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Target Amount</FormLabel>
+              <FormLabel>{t('goals.targetAmount')}</FormLabel>
               <FormControl>
                 <Input
                   type="number"
@@ -94,7 +96,7 @@ export const Goals_Form = ({ defaultValues, onSuccess }: Props) => {
           name="currentAmount"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Current Amount (optional)</FormLabel>
+              <FormLabel>{t('goals.currentAmountOptional')}</FormLabel>
               <FormControl>
                 <Input
                   type="number"
@@ -113,7 +115,7 @@ export const Goals_Form = ({ defaultValues, onSuccess }: Props) => {
           name="deadline"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Deadline (optional)</FormLabel>
+              <FormLabel>{t('goals.deadlineOptional')}</FormLabel>
               <FormControl>
                 <Input type="date" {...field} value={field.value ?? ''} />
               </FormControl>
@@ -123,7 +125,7 @@ export const Goals_Form = ({ defaultValues, onSuccess }: Props) => {
         />
         <Button type="submit" disabled={isPending} className="w-full">
           {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          {isEditing ? 'Save changes' : 'Create goal'}
+          {isEditing ? t('common.saveChanges') : t('goals.create')}
         </Button>
       </form>
     </Form>

@@ -8,9 +8,11 @@ import { Input } from '@/components/ui/input'
 import type { PasswordFormValues } from '@/features/profile/consts/profile_schemas'
 import { PasswordFormSchema } from '@/features/profile/consts/profile_schemas'
 import { useProfile_updatePasswordMutation } from '@/features/profile/hooks/useProfile_updatePasswordMutation'
+import { useTranslation } from '@/i18n/useTranslation'
 
 export const Profile_PasswordForm = () => {
   const updateMutation = useProfile_updatePasswordMutation()
+  const { t } = useTranslation()
 
   const form = useForm<PasswordFormValues>({
     resolver: zodResolver(PasswordFormSchema),
@@ -40,9 +42,9 @@ export const Profile_PasswordForm = () => {
           name="currentPassword"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Current Password</FormLabel>
+              <FormLabel>{t('profile.currentPassword')}</FormLabel>
               <FormControl>
-                <Input type="password" placeholder="Enter current password" {...field} />
+                <Input type="password" placeholder={t('profile.currentPasswordPlaceholder')} {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -53,9 +55,9 @@ export const Profile_PasswordForm = () => {
           name="newPassword"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>New Password</FormLabel>
+              <FormLabel>{t('profile.newPassword')}</FormLabel>
               <FormControl>
-                <Input type="password" placeholder="Enter new password" {...field} />
+                <Input type="password" placeholder={t('profile.newPasswordPlaceholder')} {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -66,9 +68,9 @@ export const Profile_PasswordForm = () => {
           name="confirmPassword"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Confirm Password</FormLabel>
+              <FormLabel>{t('profile.confirmPassword')}</FormLabel>
               <FormControl>
-                <Input type="password" placeholder="Confirm new password" {...field} />
+                <Input type="password" placeholder={t('profile.confirmPasswordPlaceholder')} {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -76,7 +78,7 @@ export const Profile_PasswordForm = () => {
         />
         <Button type="submit" disabled={updateMutation.isPending}>
           {updateMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          Change Password
+          {t('profile.changePassword')}
         </Button>
       </form>
     </Form>

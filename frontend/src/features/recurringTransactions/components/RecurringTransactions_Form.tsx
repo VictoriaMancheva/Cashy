@@ -14,6 +14,7 @@ import { useRecurringTransactions_createMutation } from '@/features/recurringTra
 import { useRecurringTransactions_updateMutation } from '@/features/recurringTransactions/hooks/useRecurringTransactions_updateMutation'
 import { useSharedCategories } from '@/hooks/useSharedCategories'
 import { useSharedPaymentMethods } from '@/hooks/useSharedPaymentMethods'
+import { useTranslation } from '@/i18n/useTranslation'
 import { SELECT_NONE } from '@/utils/formatters'
 
 type Props = {
@@ -26,6 +27,7 @@ export const RecurringTransactions_Form = ({ defaultValues, onSuccess }: Props) 
   const { data: paymentMethods } = useSharedPaymentMethods()
   const createMutation = useRecurringTransactions_createMutation()
   const updateMutation = useRecurringTransactions_updateMutation()
+  const { t } = useTranslation()
 
   const isPending = createMutation.isPending || updateMutation.isPending
 
@@ -70,7 +72,7 @@ export const RecurringTransactions_Form = ({ defaultValues, onSuccess }: Props) 
           name="amount"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Amount</FormLabel>
+              <FormLabel>{t('common.amount')}</FormLabel>
               <FormControl>
                 <Input
                   type="number"
@@ -91,16 +93,16 @@ export const RecurringTransactions_Form = ({ defaultValues, onSuccess }: Props) 
             name="type"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Type</FormLabel>
+                <FormLabel>{t('common.type')}</FormLabel>
                 <Select onValueChange={field.onChange} value={field.value}>
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder="Type" />
+                      <SelectValue placeholder={t('common.type')} />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="INCOME">Income</SelectItem>
-                    <SelectItem value="EXPENSE">Expense</SelectItem>
+                    <SelectItem value="INCOME">{t('transactionType.INCOME')}</SelectItem>
+                    <SelectItem value="EXPENSE">{t('transactionType.EXPENSE')}</SelectItem>
                   </SelectContent>
                 </Select>
                 <FormMessage />
@@ -113,18 +115,18 @@ export const RecurringTransactions_Form = ({ defaultValues, onSuccess }: Props) 
             name="frequency"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Frequency</FormLabel>
+                <FormLabel>{t('recurring.frequency')}</FormLabel>
                 <Select onValueChange={field.onChange} value={field.value}>
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder="Frequency" />
+                      <SelectValue placeholder={t('recurring.frequency')} />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="DAILY">Daily</SelectItem>
-                    <SelectItem value="WEEKLY">Weekly</SelectItem>
-                    <SelectItem value="MONTHLY">Monthly</SelectItem>
-                    <SelectItem value="YEARLY">Yearly</SelectItem>
+                    <SelectItem value="DAILY">{t('frequency.DAILY')}</SelectItem>
+                    <SelectItem value="WEEKLY">{t('frequency.WEEKLY')}</SelectItem>
+                    <SelectItem value="MONTHLY">{t('frequency.MONTHLY')}</SelectItem>
+                    <SelectItem value="YEARLY">{t('frequency.YEARLY')}</SelectItem>
                   </SelectContent>
                 </Select>
                 <FormMessage />
@@ -138,9 +140,9 @@ export const RecurringTransactions_Form = ({ defaultValues, onSuccess }: Props) 
           name="description"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Description</FormLabel>
+              <FormLabel>{t('common.description')}</FormLabel>
               <FormControl>
-                <Input placeholder="Optional description" {...field} />
+                <Input placeholder={t('common.descriptionPlaceholder')} {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -152,7 +154,7 @@ export const RecurringTransactions_Form = ({ defaultValues, onSuccess }: Props) 
           name="nextDate"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Next Date</FormLabel>
+              <FormLabel>{t('recurring.nextDate')}</FormLabel>
               <FormControl>
                 <Input type="date" {...field} value={field.value ?? ''} />
               </FormControl>
@@ -166,18 +168,18 @@ export const RecurringTransactions_Form = ({ defaultValues, onSuccess }: Props) 
           name="categoryId"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Category</FormLabel>
+              <FormLabel>{t('common.category')}</FormLabel>
               <Select
                 onValueChange={(v) => field.onChange(v === SELECT_NONE ? null : Number(v))}
                 value={field.value != null ? String(field.value) : SELECT_NONE}
               >
                 <FormControl>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select category (optional)" />
+                    <SelectValue placeholder={t('common.categoryPlaceholder')} />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem value={SELECT_NONE}>None</SelectItem>
+                  <SelectItem value={SELECT_NONE}>{t('common.none')}</SelectItem>
                   {categories?.map((c) => (
                     <SelectItem key={c.id} value={String(c.id)}>
                       {c.name}
@@ -195,18 +197,18 @@ export const RecurringTransactions_Form = ({ defaultValues, onSuccess }: Props) 
           name="paymentMethodId"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Payment Method</FormLabel>
+              <FormLabel>{t('common.paymentMethod')}</FormLabel>
               <Select
                 onValueChange={(v) => field.onChange(v === SELECT_NONE ? null : Number(v))}
                 value={field.value != null ? String(field.value) : SELECT_NONE}
               >
                 <FormControl>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select payment method (optional)" />
+                    <SelectValue placeholder={t('common.paymentMethodPlaceholder')} />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem value={SELECT_NONE}>None</SelectItem>
+                  <SelectItem value={SELECT_NONE}>{t('common.none')}</SelectItem>
                   {paymentMethods?.map((pm) => (
                     <SelectItem key={pm.id} value={String(pm.id)}>
                       {pm.name}
@@ -221,7 +223,7 @@ export const RecurringTransactions_Form = ({ defaultValues, onSuccess }: Props) 
 
         <Button type="submit" className="w-full" disabled={isPending}>
           {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          {defaultValues != null ? 'Save Changes' : 'Create Recurring'}
+          {defaultValues != null ? t('common.saveChanges') : t('recurring.create')}
         </Button>
       </form>
     </Form>

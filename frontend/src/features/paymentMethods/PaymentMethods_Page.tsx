@@ -11,6 +11,7 @@ import { PaymentMethods_Form } from '@/features/paymentMethods/components/Paymen
 import type { PaymentMethod } from '@/features/paymentMethods/consts/paymentMethods_schemas'
 import { usePaymentMethods_deleteMutation } from '@/features/paymentMethods/hooks/usePaymentMethods_deleteMutation'
 import { usePaymentMethods_paymentMethodsQuery } from '@/features/paymentMethods/hooks/usePaymentMethods_paymentMethodsQuery'
+import { useTranslation } from '@/i18n/useTranslation'
 import { AppLayout } from '@/layouts/AppLayout'
 
 export const PaymentMethods_Page = () => {
@@ -20,6 +21,7 @@ export const PaymentMethods_Page = () => {
 
   const { data: paymentMethods } = usePaymentMethods_paymentMethodsQuery()
   const deleteMutation = usePaymentMethods_deleteMutation()
+  const { t } = useTranslation()
 
   const handleNew = () => {
     setEditing(null)
@@ -47,22 +49,22 @@ export const PaymentMethods_Page = () => {
     <AppLayout>
       <div className="space-y-6">
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-foreground">Payment Methods</h1>
-          <Button onClick={handleNew}>New Payment Method</Button>
+          <h1 className="text-2xl font-bold text-foreground">{t('paymentMethods.title')}</h1>
+          <Button onClick={handleNew}>{t('paymentMethods.new')}</Button>
         </div>
 
         {paymentMethods == null || paymentMethods.length === 0 ? (
           <EmptyState
             icon={CreditCard}
-            title="No payment methods yet"
-            description="Create your first payment method to start tracking how you pay."
+            title={t('paymentMethods.emptyTitle')}
+            description={t('paymentMethods.emptyDescription')}
           />
         ) : (
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead className="w-24 text-right">Actions</TableHead>
+                <TableHead>{t('common.name')}</TableHead>
+                <TableHead className="w-24 text-right">{t('common.actions')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -75,7 +77,7 @@ export const PaymentMethods_Page = () => {
                         variant="ghost"
                         size="icon"
                         onClick={() => handleEdit(paymentMethod)}
-                        aria-label={`Edit ${paymentMethod.name}`}
+                        aria-label={t('common.editNamed', { name: paymentMethod.name })}
                       >
                         <Pencil className="h-4 w-4" />
                       </Button>
@@ -83,7 +85,7 @@ export const PaymentMethods_Page = () => {
                         variant="ghost"
                         size="icon"
                         onClick={() => setDeletingId(paymentMethod.id)}
-                        aria-label={`Delete ${paymentMethod.name}`}
+                        aria-label={t('common.deleteNamed', { name: paymentMethod.name })}
                       >
                         <Trash2 className="h-4 w-4 text-destructive" />
                       </Button>
@@ -98,7 +100,7 @@ export const PaymentMethods_Page = () => {
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogContent className="max-w-md">
             <DialogHeader>
-              <DialogTitle>{editing != null ? 'Edit Payment Method' : 'New Payment Method'}</DialogTitle>
+              <DialogTitle>{editing != null ? t('paymentMethods.edit') : t('paymentMethods.new')}</DialogTitle>
             </DialogHeader>
             <PaymentMethods_Form
               key={editing?.id ?? 'new'}
@@ -115,8 +117,8 @@ export const PaymentMethods_Page = () => {
           }}
           onConfirm={handleDeleteConfirm}
           isPending={deleteMutation.isPending}
-          title="Delete payment method"
-          description="This action cannot be undone. The payment method will be permanently removed."
+          title={t('paymentMethods.deleteTitle')}
+          description={t('paymentMethods.deleteDescription')}
         />
       </div>
     </AppLayout>

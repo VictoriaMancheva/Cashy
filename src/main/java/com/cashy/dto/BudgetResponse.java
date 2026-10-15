@@ -11,6 +11,8 @@ public class BudgetResponse {
 
     private Long id;
     private Double totalAmount;
+    private Double totalSpent;
+    private Double remaining;
     private Integer month;
     private Integer year;
     private List<BudgetCategoryResponse> categories;

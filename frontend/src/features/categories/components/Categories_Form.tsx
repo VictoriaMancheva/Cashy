@@ -11,6 +11,7 @@ import type { Category, CategoryFormValues } from '@/features/categories/consts/
 import { CategoryFormSchema } from '@/features/categories/consts/categories_schemas'
 import { useCategories_createMutation } from '@/features/categories/hooks/useCategories_createMutation'
 import { useCategories_updateMutation } from '@/features/categories/hooks/useCategories_updateMutation'
+import { useTranslation } from '@/i18n/useTranslation'
 
 type Props = {
   defaultValues?: Category | null
@@ -22,6 +23,7 @@ export const Categories_Form = ({ defaultValues, onSuccess }: Props) => {
 
   const createMutation = useCategories_createMutation()
   const updateMutation = useCategories_updateMutation()
+  const { t } = useTranslation()
 
   const isPending = createMutation.isPending || updateMutation.isPending
 
@@ -53,9 +55,9 @@ export const Categories_Form = ({ defaultValues, onSuccess }: Props) => {
           name="name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Name</FormLabel>
+              <FormLabel>{t('common.name')}</FormLabel>
               <FormControl>
-                <Input placeholder="Category name" {...field} />
+                <Input placeholder={t('categories.namePlaceholder')} {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -63,7 +65,7 @@ export const Categories_Form = ({ defaultValues, onSuccess }: Props) => {
         />
         <Button type="submit" disabled={isPending} className="w-full">
           {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          {isEditing ? 'Save changes' : 'Create category'}
+          {isEditing ? t('common.saveChanges') : t('categories.create')}
         </Button>
       </form>
     </Form>

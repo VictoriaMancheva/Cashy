@@ -1,5 +1,7 @@
 import { z } from 'zod'
 
+import { i18nKey } from '@/i18n/translate'
+
 export const TRANSACTION_TYPES = ['INCOME', 'EXPENSE'] as const
 export const FREQUENCIES = ['DAILY', 'WEEKLY', 'MONTHLY', 'YEARLY'] as const
 
@@ -18,7 +20,7 @@ export const RecurringTransactionSchema = z.object({
 })
 
 export const RecurringTransactionFormSchema = z.object({
-  amount: z.number().positive('Amount must be positive'),
+  amount: z.number().positive(i18nKey('validation.amountPositive')),
   description: z.string().optional(),
   frequency: z.enum(FREQUENCIES),
   type: z.enum(TRANSACTION_TYPES),

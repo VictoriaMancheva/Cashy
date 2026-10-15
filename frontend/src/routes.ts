@@ -13,4 +13,6 @@ export const ROUTES = {
   profile: '/profile',
   analytics: '/analytics',
   admin: '/admin',
+  premium: '/premium',
+  premiumSuccess: '/premium/success',
 } as const

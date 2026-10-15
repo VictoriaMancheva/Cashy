@@ -8,8 +8,10 @@ import { Input } from '@/components/ui/input'
 import type { LoginFormValues } from '@/features/auth/consts/auth_schemas'
 import { LoginSchema } from '@/features/auth/consts/auth_schemas'
 import { useAuth_loginMutation } from '@/features/auth/hooks/useAuth_loginMutation'
+import { useTranslation } from '@/i18n/useTranslation'
 
 export const Auth_LoginForm = () => {
+  const { t } = useTranslation()
   const { mutate: login, isPending, isError } = useAuth_loginMutation()
 
   const form = useForm<LoginFormValues>({
@@ -24,7 +26,7 @@ export const Auth_LoginForm = () => {
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
         {isError && (
           <p role="alert" className="text-sm text-destructive text-center">
-            Invalid email or password. Please try again.
+            {t('auth.invalidCredentials')}
           </p>
         )}
         <FormField
@@ -32,7 +34,7 @@ export const Auth_LoginForm = () => {
           name="email"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Email</FormLabel>
+              <FormLabel>{t('auth.email')}</FormLabel>
               <FormControl>
                 <Input type="email" placeholder="you@example.com" {...field} />
               </FormControl>
@@ -45,7 +47,7 @@ export const Auth_LoginForm = () => {
           name="password"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Password</FormLabel>
+              <FormLabel>{t('auth.password')}</FormLabel>
               <FormControl>
                 <Input type="password" placeholder="••••••••" {...field} />
               </FormControl>
@@ -55,7 +57,7 @@ export const Auth_LoginForm = () => {
         />
         <Button type="submit" className="w-full" disabled={isPending}>
           {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          Sign in
+          {t('auth.signIn')}
         </Button>
       </form>
     </Form>

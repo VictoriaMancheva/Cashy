@@ -12,6 +12,7 @@ export const useDailyBudget_setMutation = (): UseMutationResult<DailyBudget, Err
     mutationFn: dailyBudget_set,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: dailyBudgetKeys.all() })
+      queryClient.invalidateQueries({ queryKey: dailyBudgetKeys.today() })
     },
   })
 }

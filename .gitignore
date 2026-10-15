@@ -38,6 +38,4 @@ build/
 ### Mac OS ###
 .DS_Store
 
-.claude/
-CLAUDE.md
 frontend/node_modules

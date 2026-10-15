@@ -28,6 +28,7 @@ public class SecurityConfig {
     private static final String ADMIN_ENDPOINT = "/api/admin/**";
     private static final String PREMIUM_ENDPOINT = "/api/premium/**";
     private static final String UPLOADS_ENDPOINT = "/uploads/**";
+    private static final String STRIPE_WEBHOOK_ENDPOINT = "/api/payments/webhook";
     private static final String SWAGGER_UI_ENDPOINT = "/swagger-ui/**";
     private static final String SWAGGER_HTML_ENDPOINT = "/swagger-ui.html";
     private static final String API_DOCS_ENDPOINT = "/v3/api-docs/**";
@@ -47,6 +48,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(AUTH_ENDPOINT).permitAll()
                         .requestMatchers(UPLOADS_ENDPOINT).permitAll()
+                        .requestMatchers(STRIPE_WEBHOOK_ENDPOINT).permitAll()
                         .requestMatchers(SWAGGER_UI_ENDPOINT, SWAGGER_HTML_ENDPOINT, API_DOCS_ENDPOINT).permitAll()
                         .requestMatchers(ADMIN_ENDPOINT).hasRole(ROLE_ADMIN)
                         .requestMatchers(PREMIUM_ENDPOINT).hasAnyRole(ROLE_PREMIUM, ROLE_ADMIN)

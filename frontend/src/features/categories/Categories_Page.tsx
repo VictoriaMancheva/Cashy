@@ -11,6 +11,7 @@ import { Categories_Form } from '@/features/categories/components/Categories_For
 import type { Category } from '@/features/categories/consts/categories_schemas'
 import { useCategories_categoriesQuery } from '@/features/categories/hooks/useCategories_categoriesQuery'
 import { useCategories_deleteMutation } from '@/features/categories/hooks/useCategories_deleteMutation'
+import { useTranslation } from '@/i18n/useTranslation'
 import { AppLayout } from '@/layouts/AppLayout'
 
 export const Categories_Page = () => {
@@ -20,6 +21,7 @@ export const Categories_Page = () => {
 
   const { data: categories } = useCategories_categoriesQuery()
   const deleteMutation = useCategories_deleteMutation()
+  const { t } = useTranslation()
 
   const handleNew = () => {
     setEditing(null)
@@ -47,22 +49,22 @@ export const Categories_Page = () => {
     <AppLayout>
       <div className="space-y-6">
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-foreground">Categories</h1>
-          <Button onClick={handleNew}>New Category</Button>
+          <h1 className="text-2xl font-bold text-foreground">{t('categories.title')}</h1>
+          <Button onClick={handleNew}>{t('categories.new')}</Button>
         </div>
 
         {categories == null || categories.length === 0 ? (
           <EmptyState
             icon={Tag}
-            title="No categories yet"
-            description="Create your first category to start organising your transactions."
+            title={t('categories.emptyTitle')}
+            description={t('categories.emptyDescription')}
           />
         ) : (
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead className="w-24 text-right">Actions</TableHead>
+                <TableHead>{t('common.name')}</TableHead>
+                <TableHead className="w-24 text-right">{t('common.actions')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -75,7 +77,7 @@ export const Categories_Page = () => {
                         variant="ghost"
                         size="icon"
                         onClick={() => handleEdit(category)}
-                        aria-label={`Edit ${category.name}`}
+                        aria-label={t('common.editNamed', { name: category.name })}
                       >
                         <Pencil className="h-4 w-4" />
                       </Button>
@@ -83,7 +85,7 @@ export const Categories_Page = () => {
                         variant="ghost"
                         size="icon"
                         onClick={() => setDeletingId(category.id)}
-                        aria-label={`Delete ${category.name}`}
+                        aria-label={t('common.deleteNamed', { name: category.name })}
                       >
                         <Trash2 className="h-4 w-4 text-destructive" />
                       </Button>
@@ -98,7 +100,7 @@ export const Categories_Page = () => {
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogContent className="max-w-md">
             <DialogHeader>
-              <DialogTitle>{editing != null ? 'Edit Category' : 'New Category'}</DialogTitle>
+              <DialogTitle>{editing != null ? t('categories.edit') : t('categories.new')}</DialogTitle>
             </DialogHeader>
             <Categories_Form
               key={editing?.id ?? 'new'}
@@ -115,8 +117,8 @@ export const Categories_Page = () => {
           }}
           onConfirm={handleDeleteConfirm}
           isPending={deleteMutation.isPending}
-          title="Delete category"
-          description="This action cannot be undone. The category will be permanently removed."
+          title={t('categories.deleteTitle')}
+          description={t('categories.deleteDescription')}
         />
       </div>
     </AppLayout>
