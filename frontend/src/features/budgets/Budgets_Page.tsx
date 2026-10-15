@@ -7,10 +7,12 @@ import { EmptyState } from '@/components/common/EmptyState'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { PaginationControls } from '@/components/ui/PaginationControls'
 import { Budgets_Form } from '@/features/budgets/components/Budgets_Form'
 import type { Budget } from '@/features/budgets/consts/budgets_schemas'
 import { useBudgets_budgetsQuery } from '@/features/budgets/hooks/useBudgets_budgetsQuery'
 import { useBudgets_deleteMutation } from '@/features/budgets/hooks/useBudgets_deleteMutation'
+import { DEFAULT_PAGE_SIZE, usePagination } from '@/hooks/usePagination'
 import { useTranslation } from '@/i18n/useTranslation'
 import { AppLayout } from '@/layouts/AppLayout'
 import { formatCurrency, formatMonth } from '@/utils/formatters'
@@ -23,6 +25,7 @@ export const Budgets_Page = () => {
   const { data: budgets } = useBudgets_budgetsQuery()
   const deleteMutation = useBudgets_deleteMutation()
   const { t } = useTranslation()
+  const { page, setPage, totalPages, pageItems } = usePagination(budgets, DEFAULT_PAGE_SIZE)
 
   const handleNew = () => {
     setEditing(null)
@@ -59,8 +62,9 @@ export const Budgets_Page = () => {
             description={t('budgets.emptyDescription')}
           />
         ) : (
+          <div className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {budgets.map((budget) => (
+            {pageItems.map((budget) => (
               <Card key={budget.id}>
                 <CardHeader className="pb-2">
                   <div className="flex items-start justify-between">
@@ -118,6 +122,8 @@ export const Budgets_Page = () => {
                 </CardContent>
               </Card>
             ))}
+          </div>
+          <PaginationControls page={page} totalPages={totalPages} onPageChange={setPage} />
           </div>
         )}
 

@@ -7,6 +7,7 @@ import { EmptyState } from '@/components/common/EmptyState'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { PaginationControls } from '@/components/ui/PaginationControls'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Transactions_FiltersBar } from '@/features/transactions/components/Transactions_FiltersBar'
@@ -16,6 +17,7 @@ import type { Transaction, TransactionFilters } from '@/features/transactions/co
 import { useTransactions_deleteMutation } from '@/features/transactions/hooks/useTransactions_deleteMutation'
 import { useTransactions_transactionsQuery } from '@/features/transactions/hooks/useTransactions_transactionsQuery'
 import { useDebounce } from '@/hooks/useDebounce'
+import { DEFAULT_PAGE_SIZE, usePagination } from '@/hooks/usePagination'
 import { useTranslation } from '@/i18n/useTranslation'
 import { AppLayout } from '@/layouts/AppLayout'
 import { formatCurrency, formatDate } from '@/utils/formatters'
@@ -39,6 +41,9 @@ export const Transactions_Page = () => {
 
   const { data: transactions } = useTransactions_transactionsQuery(effectiveFilters)
   const deleteMutation = useTransactions_deleteMutation()
+  // Any filter change (including the debounced search) jumps back to page 1
+  const resetKey = JSON.stringify(effectiveFilters)
+  const { page, setPage, totalPages, pageItems } = usePagination(transactions, DEFAULT_PAGE_SIZE, resetKey)
 
   const handleNew = () => {
     setEditing(null)
@@ -83,53 +88,56 @@ export const Transactions_Page = () => {
     }
 
     return (
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>{t('common.date')}</TableHead>
-            <TableHead>{t('common.type')}</TableHead>
-            <TableHead>{t('common.amount')}</TableHead>
-            <TableHead>{t('common.description')}</TableHead>
-            <TableHead>{t('common.category')}</TableHead>
-            <TableHead>{t('common.paymentMethod')}</TableHead>
-            <TableHead className="w-24 text-right">{t('common.actions')}</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {rows.map((tx) => (
-            <TableRow key={tx.id}>
-              <TableCell>{formatDate(tx.date)}</TableCell>
-              <TableCell>
-                <Badge variant={tx.type === 'INCOME' ? 'income' : 'expense'}>{t(`transactionType.${tx.type}` as const)}</Badge>
-              </TableCell>
-              <TableCell>{formatCurrency(tx.amount)}</TableCell>
-              <TableCell>{tx.description ?? '—'}</TableCell>
-              <TableCell>{tx.categoryName ?? '—'}</TableCell>
-              <TableCell>{tx.paymentMethodName ?? '—'}</TableCell>
-              <TableCell className="text-right">
-                <div className="flex items-center justify-end gap-2">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => handleEdit(tx)}
-                    aria-label={t('transactions.editAria')}
-                  >
-                    <Pencil className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => setDeletingId(tx.id)}
-                    aria-label={t('transactions.deleteAria')}
-                  >
-                    <Trash2 className="h-4 w-4 text-destructive" />
-                  </Button>
-                </div>
-              </TableCell>
+      <div className="space-y-4">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>{t('common.date')}</TableHead>
+              <TableHead>{t('common.type')}</TableHead>
+              <TableHead>{t('common.amount')}</TableHead>
+              <TableHead>{t('common.description')}</TableHead>
+              <TableHead>{t('common.category')}</TableHead>
+              <TableHead>{t('common.paymentMethod')}</TableHead>
+              <TableHead className="w-24 text-right">{t('common.actions')}</TableHead>
             </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+          </TableHeader>
+          <TableBody>
+            {pageItems.map((tx) => (
+              <TableRow key={tx.id}>
+                <TableCell>{formatDate(tx.date)}</TableCell>
+                <TableCell>
+                  <Badge variant={tx.type === 'INCOME' ? 'income' : 'expense'}>{t(`transactionType.${tx.type}` as const)}</Badge>
+                </TableCell>
+                <TableCell>{formatCurrency(tx.amount)}</TableCell>
+                <TableCell>{tx.description ?? '—'}</TableCell>
+                <TableCell>{tx.categoryName ?? '—'}</TableCell>
+                <TableCell>{tx.paymentMethodName ?? '—'}</TableCell>
+                <TableCell className="text-right">
+                  <div className="flex items-center justify-end gap-2">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleEdit(tx)}
+                      aria-label={t('transactions.editAria')}
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setDeletingId(tx.id)}
+                      aria-label={t('transactions.deleteAria')}
+                    >
+                      <Trash2 className="h-4 w-4 text-destructive" />
+                    </Button>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+        <PaginationControls page={page} totalPages={totalPages} onPageChange={setPage} />
+      </div>
     )
   }
 

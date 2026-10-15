@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-export const PAYMENT_STATUSES = ['PENDING', 'PAID'] as const
+export const PAYMENT_STATUSES = ['PENDING', 'PAID', 'FAILED'] as const
 
 export const CheckoutSessionSchema = z.object({
   sessionId: z.string(),

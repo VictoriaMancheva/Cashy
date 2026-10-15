@@ -21,7 +21,14 @@ public class Notification {
     @Column(name = "created_at")
     private LocalDateTime createdAt = LocalDateTime.now();
 
+    @Enumerated(EnumType.STRING)
+    private Priority priority = Priority.NORMAL;
+
     @ManyToOne
     @JoinColumn(name = "user_id")
     private User user;
+
+    public enum Priority {
+        NORMAL, URGENT
+    }
 }

@@ -7,12 +7,14 @@ import { EmptyState } from '@/components/common/EmptyState'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { PaginationControls } from '@/components/ui/PaginationControls'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import type { RecurringTransaction } from '@/features/recurringTransactions/consts/recurringTransactions_schemas'
 import { useRecurringTransactions_applyMutation } from '@/features/recurringTransactions/hooks/useRecurringTransactions_applyMutation'
 import { useRecurringTransactions_deleteMutation } from '@/features/recurringTransactions/hooks/useRecurringTransactions_deleteMutation'
 import { useRecurringTransactions_recurringTransactionsQuery } from '@/features/recurringTransactions/hooks/useRecurringTransactions_recurringTransactionsQuery'
 import { RecurringTransactions_Form } from '@/features/recurringTransactions/components/RecurringTransactions_Form'
+import { DEFAULT_PAGE_SIZE, usePagination } from '@/hooks/usePagination'
 import { useTranslation } from '@/i18n/useTranslation'
 import { AppLayout } from '@/layouts/AppLayout'
 import { formatCurrency, formatDate } from '@/utils/formatters'
@@ -26,6 +28,7 @@ export const RecurringTransactions_Page = () => {
   const deleteMutation = useRecurringTransactions_deleteMutation()
   const applyMutation = useRecurringTransactions_applyMutation()
   const { t } = useTranslation()
+  const { page, setPage, totalPages, pageItems } = usePagination(recurringTransactions, DEFAULT_PAGE_SIZE)
 
   const handleNew = () => {
     setEditing(null)
@@ -62,6 +65,7 @@ export const RecurringTransactions_Page = () => {
             description={t('recurring.emptyDescription')}
           />
         ) : (
+          <div className="space-y-4">
           <Table>
             <TableHeader>
               <TableRow>
@@ -75,7 +79,7 @@ export const RecurringTransactions_Page = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {recurringTransactions.map((rt) => (
+              {pageItems.map((rt) => (
                 <TableRow key={rt.id}>
                   <TableCell>{rt.description ?? '—'}</TableCell>
                   <TableCell>
@@ -118,6 +122,8 @@ export const RecurringTransactions_Page = () => {
               ))}
             </TableBody>
           </Table>
+          <PaginationControls page={page} totalPages={totalPages} onPageChange={setPage} />
+          </div>
         )}
 
         <Dialog open={open} onOpenChange={setOpen}>

@@ -22,6 +22,7 @@ import { CurrencySwitcher } from '@/components/common/CurrencySwitcher'
 import { LanguageSwitcher } from '@/components/common/LanguageSwitcher'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
+import { useNotifications_urgentUnreadCountQuery } from '@/features/notifications/hooks/useNotifications_urgentUnreadCountQuery'
 import { useProfile_meQuery } from '@/features/profile/hooks/useProfile_meQuery'
 import type { TranslationKey } from '@/i18n/translate'
 import { useTranslation } from '@/i18n/useTranslation'
@@ -61,6 +62,7 @@ export const AppLayout = ({ children }: Props) => {
   const { t } = useTranslation()
   const { data: currentUser } = useProfile_meQuery()
   const isAdmin = currentUser?.role === 'ADMIN'
+  const { data: urgentCount = 0 } = useNotifications_urgentUnreadCountQuery()
 
   const handleLogout = () => {
     localStorage.removeItem('token')
@@ -98,6 +100,14 @@ export const AppLayout = ({ children }: Props) => {
             <NavLink key={to} to={to} className={navClass}>
               <Icon className="h-4 w-4 shrink-0" />
               {t(labelKey)}
+              {to === ROUTES.notifications && urgentCount > 0 && (
+                <span
+                  className="ml-auto rounded-full bg-destructive px-2 py-0.5 text-xs font-semibold text-white"
+                  aria-label={t('notifications.urgentCountAria', { count: urgentCount })}
+                >
+                  {urgentCount}
+                </span>
+              )}
             </NavLink>
           ))}
           {isAdmin && (

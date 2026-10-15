@@ -6,11 +6,13 @@ import { DeleteConfirmDialog } from '@/components/common/DeleteConfirmDialog'
 import { EmptyState } from '@/components/common/EmptyState'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { PaginationControls } from '@/components/ui/PaginationControls'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { PaymentMethods_Form } from '@/features/paymentMethods/components/PaymentMethods_Form'
 import type { PaymentMethod } from '@/features/paymentMethods/consts/paymentMethods_schemas'
 import { usePaymentMethods_deleteMutation } from '@/features/paymentMethods/hooks/usePaymentMethods_deleteMutation'
 import { usePaymentMethods_paymentMethodsQuery } from '@/features/paymentMethods/hooks/usePaymentMethods_paymentMethodsQuery'
+import { DEFAULT_PAGE_SIZE, usePagination } from '@/hooks/usePagination'
 import { useTranslation } from '@/i18n/useTranslation'
 import { AppLayout } from '@/layouts/AppLayout'
 
@@ -22,6 +24,7 @@ export const PaymentMethods_Page = () => {
   const { data: paymentMethods } = usePaymentMethods_paymentMethodsQuery()
   const deleteMutation = usePaymentMethods_deleteMutation()
   const { t } = useTranslation()
+  const { page, setPage, totalPages, pageItems } = usePagination(paymentMethods, DEFAULT_PAGE_SIZE)
 
   const handleNew = () => {
     setEditing(null)
@@ -60,41 +63,44 @@ export const PaymentMethods_Page = () => {
             description={t('paymentMethods.emptyDescription')}
           />
         ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>{t('common.name')}</TableHead>
-                <TableHead className="w-24 text-right">{t('common.actions')}</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {paymentMethods.map((paymentMethod) => (
-                <TableRow key={paymentMethod.id}>
-                  <TableCell>{paymentMethod.name}</TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex items-center justify-end gap-2">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleEdit(paymentMethod)}
-                        aria-label={t('common.editNamed', { name: paymentMethod.name })}
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => setDeletingId(paymentMethod.id)}
-                        aria-label={t('common.deleteNamed', { name: paymentMethod.name })}
-                      >
-                        <Trash2 className="h-4 w-4 text-destructive" />
-                      </Button>
-                    </div>
-                  </TableCell>
+          <div className="space-y-4">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>{t('common.name')}</TableHead>
+                  <TableHead className="w-24 text-right">{t('common.actions')}</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {pageItems.map((paymentMethod) => (
+                  <TableRow key={paymentMethod.id}>
+                    <TableCell>{paymentMethod.name}</TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex items-center justify-end gap-2">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleEdit(paymentMethod)}
+                          aria-label={t('common.editNamed', { name: paymentMethod.name })}
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => setDeletingId(paymentMethod.id)}
+                          aria-label={t('common.deleteNamed', { name: paymentMethod.name })}
+                        >
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+            <PaginationControls page={page} totalPages={totalPages} onPageChange={setPage} />
+          </div>
         )}
 
         <Dialog open={open} onOpenChange={setOpen}>

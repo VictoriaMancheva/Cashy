@@ -11,6 +11,7 @@ import com.stripe.exception.SignatureVerificationException;
 import com.stripe.exception.StripeException;
 import com.stripe.model.Event;
 import com.stripe.model.EventDataObjectDeserializer;
+import com.stripe.model.PaymentIntent;
 import com.stripe.model.StripeObject;
 import com.stripe.model.checkout.Session;
 import com.stripe.net.RequestOptions;
@@ -51,7 +52,11 @@ public class PaymentService {
     private static final String CANCEL_PATH = "/premium";
     private static final String METADATA_USER_ID = "userId";
     private static final String PAYMENT_STATUS_PAID = "paid";
+    private static final String UNKNOWN_USER = "unknown user";
+
     private static final String CHECKOUT_COMPLETED_EVENT = "checkout.session.completed";
+    private static final String CHECKOUT_ASYNC_FAILED_EVENT = "checkout.session.async_payment_failed";
+    private static final String PAYMENT_INTENT_FAILED_EVENT = "payment_intent.payment_failed";
 
     private static final String PAYMENTS_NOT_CONFIGURED = "Payments are not configured";
     private static final String WEBHOOK_NOT_CONFIGURED = "Stripe webhook secret is not configured";
@@ -61,11 +66,27 @@ public class PaymentService {
     private static final String STRIPE_ERROR = "Payment provider error: %s";
     private static final String ACCESS_DENIED = "Access denied";
     private static final String PREMIUM_ACTIVATED = "Welcome to Premium! Receipt scanning and forecasts are now unlocked.";
+    private static final String USER_PAYMENT_FAILED = "Your Premium payment could not be completed. No money was taken – please try again.";
+
+    // Messages for the admins' URGENT notifications
+    private static final String ADMIN_ALERT = "URGENT – payment problem: %s (%s)";
+    private static final String PROBLEM_NOT_CONFIGURED = "a user tried to buy Premium but STRIPE_SECRET_KEY is not set";
+    private static final String PROBLEM_CHECKOUT_FAILED = "Stripe could not create a checkout session: %s";
+    private static final String PROBLEM_VERIFY_FAILED = "Stripe could not verify session %s: %s";
+    private static final String PROBLEM_WEBHOOK_NOT_CONFIGURED = "Stripe sent a webhook but STRIPE_WEBHOOK_SECRET is not set";
+    private static final String PROBLEM_INVALID_SIGNATURE = "webhook with an invalid signature was rejected – possible forged request";
+    private static final String PROBLEM_PAID_WITHOUT_RECORD = "Stripe charged session %s but no matching payment exists, so Premium was NOT activated";
+    private static final String PROBLEM_ASYNC_FAILED = "delayed payment for session %s failed";
+    private static final String PROBLEM_CARD_FAILED = "card payment failed: %s";
 
     public CheckoutSessionResponse createCheckoutSession() {
         User user = userService.getCurrentUser();
         if (user.getRole() != User.Role.USER) {
             throw new IllegalArgumentException(ALREADY_PREMIUM);
+        }
+        if (!isStripeConfigured()) {
+            alertAdmins(PROBLEM_NOT_CONFIGURED, user.getEmail());
+            throw new IllegalStateException(PAYMENTS_NOT_CONFIGURED);
         }
 
         SessionCreateParams params = SessionCreateParams.builder()
@@ -75,6 +96,10 @@ public class PaymentService {
                 .setCustomerEmail(user.getEmail())
                 .setClientReferenceId(String.valueOf(user.getId()))
                 .putMetadata(METADATA_USER_ID, String.valueOf(user.getId()))
+                // Copied onto the PaymentIntent so a failed card payment can be traced back to the user
+                .setPaymentIntentData(SessionCreateParams.PaymentIntentData.builder()
+                        .putMetadata(METADATA_USER_ID, String.valueOf(user.getId()))
+                        .build())
                 .addLineItem(SessionCreateParams.LineItem.builder()
                         .setQuantity(1L)
                         .setPriceData(SessionCreateParams.LineItem.PriceData.builder()
@@ -92,6 +117,7 @@ public class PaymentService {
         try {
             session = Session.create(params, requestOptions());
         } catch (StripeException e) {
+            alertAdmins(String.format(PROBLEM_CHECKOUT_FAILED, e.getMessage()), user.getEmail());
             throw new IllegalStateException(String.format(STRIPE_ERROR, e.getMessage()), e);
         }
 
@@ -115,10 +141,15 @@ public class PaymentService {
         }
 
         if (payment.getStatus() != Payment.PaymentStatus.PAID) {
+            if (!isStripeConfigured()) {
+                alertAdmins(PROBLEM_NOT_CONFIGURED, user.getEmail());
+                throw new IllegalStateException(PAYMENTS_NOT_CONFIGURED);
+            }
             Session session;
             try {
                 session = Session.retrieve(sessionId, requestOptions());
             } catch (StripeException e) {
+                alertAdmins(String.format(PROBLEM_VERIFY_FAILED, sessionId, e.getMessage()), user.getEmail());
                 throw new IllegalStateException(String.format(STRIPE_ERROR, e.getMessage()), e);
             }
             if (PAYMENT_STATUS_PAID.equals(session.getPaymentStatus())) {
@@ -132,6 +163,7 @@ public class PaymentService {
     @Transactional
     public void handleWebhook(String payload, String signature) {
         if (stripeWebhookSecret == null || stripeWebhookSecret.isBlank()) {
+            alertAdmins(PROBLEM_WEBHOOK_NOT_CONFIGURED, UNKNOWN_USER);
             throw new IllegalStateException(WEBHOOK_NOT_CONFIGURED);
         }
 
@@ -139,18 +171,18 @@ public class PaymentService {
         try {
             event = Webhook.constructEvent(payload, signature, stripeWebhookSecret);
         } catch (SignatureVerificationException e) {
+            alertAdmins(PROBLEM_INVALID_SIGNATURE, UNKNOWN_USER);
             throw new IllegalArgumentException(INVALID_SIGNATURE);
         }
 
-        if (!CHECKOUT_COMPLETED_EVENT.equals(event.getType())) {
-            return;
+        switch (event.getType()) {
+            case CHECKOUT_COMPLETED_EVENT -> handleCheckoutCompleted((Session) deserialize(event));
+            case CHECKOUT_ASYNC_FAILED_EVENT -> handleAsyncPaymentFailed((Session) deserialize(event));
+            case PAYMENT_INTENT_FAILED_EVENT -> handleCardPaymentFailed((PaymentIntent) deserialize(event));
+            default -> {
+                // Other Stripe events are not used by Cashy
+            }
         }
-
-        Session session = deserializeSession(event);
-        if (!PAYMENT_STATUS_PAID.equals(session.getPaymentStatus())) {
-            return;
-        }
-        paymentRepository.findByStripeSessionId(session.getId()).ifPresent(this::markPaid);
     }
 
     public List<PaymentResponse> getPayments() {
@@ -158,6 +190,30 @@ public class PaymentService {
         return paymentRepository.findByUserOrderByCreatedAtDesc(user).stream()
                 .map(this::toResponse)
                 .toList();
+    }
+
+    private void handleCheckoutCompleted(Session session) {
+        if (!PAYMENT_STATUS_PAID.equals(session.getPaymentStatus())) {
+            return;
+        }
+        paymentRepository.findByStripeSessionId(session.getId()).ifPresentOrElse(
+                this::markPaid,
+                // The customer was charged but Cashy has no record: an admin must upgrade the account manually
+                () -> alertAdmins(String.format(PROBLEM_PAID_WITHOUT_RECORD, session.getId()), describeCustomer(session.getCustomerEmail())));
+    }
+
+    private void handleAsyncPaymentFailed(Session session) {
+        paymentRepository.findByStripeSessionId(session.getId()).ifPresent(payment -> {
+            payment.setStatus(Payment.PaymentStatus.FAILED);
+            paymentRepository.save(payment);
+            notificationService.createNotification(payment.getUser(), USER_PAYMENT_FAILED);
+        });
+        alertAdmins(String.format(PROBLEM_ASYNC_FAILED, session.getId()), describeCustomer(session.getCustomerEmail()));
+    }
+
+    private void handleCardPaymentFailed(PaymentIntent intent) {
+        String reason = intent.getLastPaymentError() != null ? intent.getLastPaymentError().getMessage() : intent.getId();
+        alertAdmins(String.format(PROBLEM_CARD_FAILED, reason), describeUserFromMetadata(intent));
     }
 
     // Idempotent: confirm and webhook can both arrive for the same session
@@ -177,13 +233,30 @@ public class PaymentService {
         notificationService.createNotification(user, PREMIUM_ACTIVATED);
     }
 
-    private Session deserializeSession(Event event) {
+    private void alertAdmins(String problem, String who) {
+        notificationService.notifyAdmins(String.format(ADMIN_ALERT, problem, who));
+    }
+
+    private String describeCustomer(String email) {
+        return email != null ? email : UNKNOWN_USER;
+    }
+
+    private String describeUserFromMetadata(PaymentIntent intent) {
+        String userId = intent.getMetadata() != null ? intent.getMetadata().get(METADATA_USER_ID) : null;
+        if (userId == null) {
+            return UNKNOWN_USER;
+        }
+        return userRepository.findById(Long.valueOf(userId))
+                .map(User::getEmail)
+                .orElse(UNKNOWN_USER);
+    }
+
+    private StripeObject deserialize(Event event) {
         EventDataObjectDeserializer deserializer = event.getDataObjectDeserializer();
         try {
-            StripeObject object = deserializer.getObject().isPresent()
+            return deserializer.getObject().isPresent()
                     ? deserializer.getObject().get()
                     : deserializer.deserializeUnsafe();
-            return (Session) object;
         } catch (EventDataObjectDeserializationException e) {
             throw new IllegalStateException(String.format(STRIPE_ERROR, e.getMessage()), e);
         }
@@ -194,10 +267,11 @@ public class PaymentService {
                 .orElseThrow(() -> new IllegalArgumentException(String.format(PAYMENT_NOT_FOUND, sessionId)));
     }
 
+    private boolean isStripeConfigured() {
+        return stripeSecretKey != null && !stripeSecretKey.isBlank();
+    }
+
     private RequestOptions requestOptions() {
-        if (stripeSecretKey == null || stripeSecretKey.isBlank()) {
-            throw new IllegalStateException(PAYMENTS_NOT_CONFIGURED);
-        }
         return RequestOptions.builder().setApiKey(stripeSecretKey).build();
     }
 

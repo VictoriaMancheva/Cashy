@@ -1,7 +1,7 @@
 import { DEFAULT_CURRENCY } from '@/i18n/currencies'
 
 // Read by plain formatter functions which cannot use React context
-let currentCurrency = DEFAULT_CURRENCY
+let currentCurrency: string = DEFAULT_CURRENCY
 
 export const getCurrency = (): string => currentCurrency
 

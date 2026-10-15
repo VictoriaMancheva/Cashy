@@ -6,11 +6,13 @@ import { DeleteConfirmDialog } from '@/components/common/DeleteConfirmDialog'
 import { EmptyState } from '@/components/common/EmptyState'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { PaginationControls } from '@/components/ui/PaginationControls'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { DailyBudget_Form } from '@/features/dailyBudget/components/DailyBudget_Form'
 import { DailyBudget_TodayCard } from '@/features/dailyBudget/components/DailyBudget_TodayCard'
 import { useDailyBudget_dailyBudgetsQuery } from '@/features/dailyBudget/hooks/useDailyBudget_dailyBudgetsQuery'
 import { useDailyBudget_deleteMutation } from '@/features/dailyBudget/hooks/useDailyBudget_deleteMutation'
+import { DEFAULT_PAGE_SIZE, usePagination } from '@/hooks/usePagination'
 import { useTranslation } from '@/i18n/useTranslation'
 import { AppLayout } from '@/layouts/AppLayout'
 import { formatCurrency, formatDate } from '@/utils/formatters'
@@ -21,6 +23,7 @@ export const DailyBudget_Page = () => {
 
   const { data: dailyBudgets } = useDailyBudget_dailyBudgetsQuery()
   const deleteMutation = useDailyBudget_deleteMutation()
+  const { page, setPage, totalPages, pageItems } = usePagination(dailyBudgets, DEFAULT_PAGE_SIZE)
 
   const handleDeleteConfirm = () => {
     if (deletingId == null) return
@@ -58,33 +61,38 @@ export const DailyBudget_Page = () => {
                   description={t('dailyBudget.emptyDescription')}
                 />
               ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>{t('common.date')}</TableHead>
-                      <TableHead>{t('dailyBudget.limit')}</TableHead>
-                      <TableHead className="w-16 text-right">{t('common.delete')}</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {dailyBudgets.map((budget) => (
-                      <TableRow key={budget.id}>
-                        <TableCell>{formatDate(budget.date)}</TableCell>
-                        <TableCell>{formatCurrency(budget.dailyLimit)}</TableCell>
-                        <TableCell className="text-right">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => setDeletingId(budget.id)}
-                            aria-label={t('dailyBudget.deleteAria', { date: formatDate(budget.date) })}
-                          >
-                            <Trash2 className="h-4 w-4 text-destructive" />
-                          </Button>
-                        </TableCell>
+                <>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>{t('common.date')}</TableHead>
+                        <TableHead>{t('dailyBudget.limit')}</TableHead>
+                        <TableHead className="w-16 text-right">{t('common.delete')}</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                    </TableHeader>
+                    <TableBody>
+                      {pageItems.map((budget) => (
+                        <TableRow key={budget.id}>
+                          <TableCell>{formatDate(budget.date)}</TableCell>
+                          <TableCell>{formatCurrency(budget.dailyLimit)}</TableCell>
+                          <TableCell className="text-right">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => setDeletingId(budget.id)}
+                              aria-label={t('dailyBudget.deleteAria', { date: formatDate(budget.date) })}
+                            >
+                              <Trash2 className="h-4 w-4 text-destructive" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                  <div className="pb-4">
+                    <PaginationControls page={page} totalPages={totalPages} onPageChange={setPage} />
+                  </div>
+                </>
               )}
             </CardContent>
           </Card>

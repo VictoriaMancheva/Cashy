@@ -6,11 +6,13 @@ import { DeleteConfirmDialog } from '@/components/common/DeleteConfirmDialog'
 import { EmptyState } from '@/components/common/EmptyState'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { PaginationControls } from '@/components/ui/PaginationControls'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Categories_Form } from '@/features/categories/components/Categories_Form'
 import type { Category } from '@/features/categories/consts/categories_schemas'
 import { useCategories_categoriesQuery } from '@/features/categories/hooks/useCategories_categoriesQuery'
 import { useCategories_deleteMutation } from '@/features/categories/hooks/useCategories_deleteMutation'
+import { DEFAULT_PAGE_SIZE, usePagination } from '@/hooks/usePagination'
 import { useTranslation } from '@/i18n/useTranslation'
 import { AppLayout } from '@/layouts/AppLayout'
 
@@ -22,6 +24,7 @@ export const Categories_Page = () => {
   const { data: categories } = useCategories_categoriesQuery()
   const deleteMutation = useCategories_deleteMutation()
   const { t } = useTranslation()
+  const { page, setPage, totalPages, pageItems } = usePagination(categories, DEFAULT_PAGE_SIZE)
 
   const handleNew = () => {
     setEditing(null)
@@ -60,41 +63,44 @@ export const Categories_Page = () => {
             description={t('categories.emptyDescription')}
           />
         ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>{t('common.name')}</TableHead>
-                <TableHead className="w-24 text-right">{t('common.actions')}</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {categories.map((category) => (
-                <TableRow key={category.id}>
-                  <TableCell>{category.name}</TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex items-center justify-end gap-2">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleEdit(category)}
-                        aria-label={t('common.editNamed', { name: category.name })}
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => setDeletingId(category.id)}
-                        aria-label={t('common.deleteNamed', { name: category.name })}
-                      >
-                        <Trash2 className="h-4 w-4 text-destructive" />
-                      </Button>
-                    </div>
-                  </TableCell>
+          <div className="space-y-4">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>{t('common.name')}</TableHead>
+                  <TableHead className="w-24 text-right">{t('common.actions')}</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {pageItems.map((category) => (
+                  <TableRow key={category.id}>
+                    <TableCell>{category.name}</TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex items-center justify-end gap-2">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleEdit(category)}
+                          aria-label={t('common.editNamed', { name: category.name })}
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => setDeletingId(category.id)}
+                          aria-label={t('common.deleteNamed', { name: category.name })}
+                        >
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+            <PaginationControls page={page} totalPages={totalPages} onPageChange={setPage} />
+          </div>
         )}
 
         <Dialog open={open} onOpenChange={setOpen}>

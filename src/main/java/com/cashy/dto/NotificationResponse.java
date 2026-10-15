@@ -1,5 +1,6 @@
 package com.cashy.dto;
 
+import com.cashy.entity.Notification;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
@@ -13,4 +14,5 @@ public class NotificationResponse {
     private String message;
     private Boolean isRead;
     private LocalDateTime createdAt;
+    private Notification.Priority priority;
 }

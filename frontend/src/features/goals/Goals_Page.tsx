@@ -7,12 +7,14 @@ import { EmptyState } from '@/components/common/EmptyState'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { PaginationControls } from '@/components/ui/PaginationControls'
 import { Progress } from '@/components/ui/progress'
 import { Goals_AddFundsForm } from '@/features/goals/components/Goals_AddFundsForm'
 import { Goals_Form } from '@/features/goals/components/Goals_Form'
 import type { Goal } from '@/features/goals/consts/goals_schemas'
 import { useGoals_deleteMutation } from '@/features/goals/hooks/useGoals_deleteMutation'
 import { useGoals_goalsQuery } from '@/features/goals/hooks/useGoals_goalsQuery'
+import { DEFAULT_PAGE_SIZE, usePagination } from '@/hooks/usePagination'
 import { useTranslation } from '@/i18n/useTranslation'
 import { AppLayout } from '@/layouts/AppLayout'
 import { formatCurrency, formatDate } from '@/utils/formatters'
@@ -26,6 +28,7 @@ export const Goals_Page = () => {
   const { data: goals } = useGoals_goalsQuery()
   const deleteMutation = useGoals_deleteMutation()
   const { t } = useTranslation()
+  const { page, setPage, totalPages, pageItems } = usePagination(goals, DEFAULT_PAGE_SIZE)
 
   const handleNew = () => {
     setEditing(null)
@@ -68,8 +71,9 @@ export const Goals_Page = () => {
             description={t('goals.emptyDescription')}
           />
         ) : (
+          <div className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {goals.map((goal) => (
+            {pageItems.map((goal) => (
               <Card key={goal.id}>
                 <CardHeader className="pb-2">
                   <div className="flex items-start justify-between gap-2">
@@ -119,6 +123,8 @@ export const Goals_Page = () => {
                 </CardContent>
               </Card>
             ))}
+          </div>
+          <PaginationControls page={page} totalPages={totalPages} onPageChange={setPage} />
           </div>
         )}
 

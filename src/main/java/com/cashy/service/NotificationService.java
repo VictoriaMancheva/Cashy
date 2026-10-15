@@ -6,6 +6,8 @@ import com.cashy.entity.User;
 import com.cashy.repository.NotificationRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -60,13 +62,28 @@ public class NotificationService {
     }
 
     public Notification createNotification(User user, String message) {
+        return createNotification(user, message, Notification.Priority.NORMAL);
+    }
+
+    public Notification createNotification(User user, String message, Notification.Priority priority) {
         Notification notification = new Notification();
         notification.setUser(user);
         notification.setMessage(message);
+        notification.setPriority(priority);
         return notificationRepository.save(notification);
     }
 
+    // Sends an URGENT notification to every admin. Runs in its own transaction so the alert
+    // is kept even when the caller's transaction rolls back because of the problem it reports.
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void notifyAdmins(String message) {
+        userService.getUsersByRole(User.Role.ADMIN)
+                .forEach(admin -> createNotification(admin, message, Notification.Priority.URGENT));
+    }
+
     private NotificationResponse toResponse(Notification n) {
-        return new NotificationResponse(n.getId(), n.getMessage(), n.getIsRead(), n.getCreatedAt());
+        // Rows created before the priority column existed have no value
+        Notification.Priority priority = n.getPriority() != null ? n.getPriority() : Notification.Priority.NORMAL;
+        return new NotificationResponse(n.getId(), n.getMessage(), n.getIsRead(), n.getCreatedAt(), priority);
     }
 }

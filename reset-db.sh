@@ -13,4 +13,7 @@ docker exec -i cashy_postgres psql -v ON_ERROR_STOP=1 -U postgres -d cashy_db -c
 echo "Loading seed.sql..."
 docker exec -i cashy_postgres psql -v ON_ERROR_STOP=1 -q -U postgres -d cashy_db < seed.sql
 
-echo "Done. Accounts (password: password): admin@cashy.com, alex@cashy.com, maria@cashy.com"
+echo "Generating demo users..."
+docker exec -i cashy_postgres psql -v ON_ERROR_STOP=1 -q -U postgres -d cashy_db < seed-demo-users.sql
+
+echo "Done. Accounts (password: password): admin, alex, maria, ivan, elena, georgi, petya, nikolay, desislava (all @cashy.com)"

@@ -37,6 +37,6 @@ public class Payment {
     private User user;
 
     public enum PaymentStatus {
-        PENDING, PAID
+        PENDING, PAID, FAILED
     }
 }
