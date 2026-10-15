@@ -4,6 +4,7 @@ import { createRoot } from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 
 import { App } from '@/App'
+import { CurrencyProvider } from '@/i18n/CurrencyContext'
 import { LanguageProvider } from '@/i18n/LanguageContext'
 import '@/index.css'
 
@@ -16,9 +17,11 @@ createRoot(rootElement).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
       <LanguageProvider>
-        <BrowserRouter>
-          <App />
-        </BrowserRouter>
+        <CurrencyProvider>
+          <BrowserRouter>
+            <App />
+          </BrowserRouter>
+        </CurrencyProvider>
       </LanguageProvider>
     </QueryClientProvider>
   </StrictMode>

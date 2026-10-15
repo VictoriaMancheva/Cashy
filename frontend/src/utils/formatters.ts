@@ -1,14 +1,15 @@
+import { getCurrency } from '@/i18n/currency'
 import { getLocale } from '@/i18n/locale'
 
-// All formatters follow the language chosen in the language switcher
+// All formatters follow the language and currency chosen in the switchers
 
 export const formatCurrency = (amount: number): string =>
-  new Intl.NumberFormat(getLocale(), { style: 'currency', currency: 'USD', currencyDisplay: 'narrowSymbol' }).format(amount)
+  new Intl.NumberFormat(getLocale(), { style: 'currency', currency: getCurrency(), currencyDisplay: 'narrowSymbol' }).format(amount)
 
 export const formatCurrencyShort = (amount: number): string =>
   new Intl.NumberFormat(getLocale(), {
     style: 'currency',
-    currency: 'USD',
+    currency: getCurrency(),
     currencyDisplay: 'narrowSymbol',
     maximumFractionDigits: 0,
   }).format(amount)

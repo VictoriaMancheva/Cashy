@@ -3,6 +3,7 @@ export const en = {
   common: {
     appTagline: 'Your personal finance tracker',
     language: 'Language',
+    currency: 'Currency',
     cancel: 'Cancel',
     close: 'Close',
     delete: 'Delete',

@@ -18,6 +18,7 @@ import {
 import type { LucideIcon } from 'lucide-react'
 import { NavLink, useNavigate } from 'react-router-dom'
 
+import { CurrencySwitcher } from '@/components/common/CurrencySwitcher'
 import { LanguageSwitcher } from '@/components/common/LanguageSwitcher'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
@@ -106,6 +107,7 @@ export const AppLayout = ({ children }: Props) => {
             </NavLink>
           )}
           <LanguageSwitcher className="w-full" />
+          <CurrencySwitcher className="w-full" />
           <Button
             variant="ghost"
             className="w-full justify-start gap-3 text-muted-foreground hover:text-accent-foreground px-3"

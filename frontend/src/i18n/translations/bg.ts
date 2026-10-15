@@ -4,6 +4,7 @@ export const bg: Translations = {
   common: {
     appTagline: 'Вашият помощник за лични финанси',
     language: 'Език',
+    currency: 'Валута',
     cancel: 'Отказ',
     close: 'Затвори',
     delete: 'Изтрий',
